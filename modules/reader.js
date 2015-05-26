@@ -2,6 +2,7 @@
 
 
 // required modules
+var EventEmitter = require('events').EventEmitter;
 var Gpio = require('onoff').Gpio;
 
 
@@ -12,9 +13,11 @@ var ctimeout = 100;
 // connections
 var pdata0 = new Gpio(14, 'in', 'falling');
 var pdata1 = new Gpio(15, 'in', 'falling');
-// var pgreen = 18
+var pgreen = new Gpio(18, 'out');
+var pbeep = new Gpio(24, 'out');
+pgreen.writeSync(1);
+pbeep.writeSync(1);
 // var pred = 23
-// var pbeep = 24
 // var phold = 25
 // var pcard = 8
 
@@ -22,6 +25,8 @@ var pdata1 = new Gpio(15, 'in', 'falling');
 // initialize
 var card = 0
 var cbits = 0
+var event = new EventEmitter();
+module.exports = event;
 
 
 
@@ -39,19 +44,28 @@ pdata1.watch(function(err, val) {
 });
 
 
+// handle beep request
+event.on('beep', function(dur) {
+  pbeep.writeSync(0);
+  setTimeout(function() {
+    pbeep.writeSync(1);
+  }, dur || 2000);
+});
+
+
 // card read code
 console.log('pi-snax-reader');
 setInterval(function() {
   if(cbits > 0) setTimeout(function() {
     console.log('['+cbits+'] - '+card);
+    event.emit('card', cbits, card);
     card = cbits = 0;
   }, ctimeout);
 }, ctimeout);
 
 
 // cleanup
-process.on('SIGINT', function() {
+event.on('close', function() {
   pdata0.unexport();
   pdata1.unexport();
-  process.exit();
 });
