@@ -6,11 +6,15 @@ var EventEmitter = require('events').EventEmitter;
 var sqlite3 = require('sqlite3').verbose();
 
 
+// config
+var file = 'data/storage.db';
+
+
 // initialize
 console.log('pi-snax-storage');
-var event = new EventEmitter();
-var db = new sqlite3.Database('storage.db');
-module.exports = event;
+var o = new EventEmitter();
+var db = new sqlite3.Database(file);
+module.exports = o;
 
 
 
@@ -85,7 +89,5 @@ event.on('add', function(vals, fn) {
 });
 
 
-// cleanup
-event.on('close', function() {
-  db.close();
-});
+// close module
+o.close = db.close;

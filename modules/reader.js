@@ -8,6 +8,7 @@ var Gpio = require('onoff').Gpio;
 
 // config
 var ctimeout = 100;
+var minbits = 8;
 
 
 // connections
@@ -23,49 +24,56 @@ pbeep.writeSync(1);
 
 
 // initialize
-var card = 0
-var cbits = 0
-var event = new EventEmitter();
-module.exports = event;
+console.log('pi-snax-reader');
+var card = 0, cbits = 0;
+var o = new EventEmitter();
+module.exports = o;
 
 
 
 // handle card data0 low
 pdata0.watch(function(err, val) {
-  card <<= 1
-  cbits += 1
+  card <<= 1;
+  cbits += 1;
 });
 
 
 // handle card data1 low
 pdata1.watch(function(err, val) {
-  card = (card << 1) | 1
-  cbits += 1
+  card = (card << 1) | 1;
+  cbits += 1;
 });
 
 
+// get card value
+var cardValue = function() {
+  console.log('reader.card['+cbits+'] - '+card);
+  if(cbits >= minbits) o.emit('card', cbits, card);
+  card = cbits = 0;
+};
+
+
 // handle beep request
-event.on('beep', function(dur) {
+o.beep = function(dur) {
   pbeep.writeSync(0);
   setTimeout(function() {
     pbeep.writeSync(1);
   }, dur || 2000);
-});
+};
 
 
 // card read code
-console.log('pi-snax-reader');
 setInterval(function() {
-  if(cbits > 0) setTimeout(function() {
-    console.log('['+cbits+'] - '+card);
-    event.emit('card', cbits, card);
-    card = cbits = 0;
-  }, ctimeout);
+  if(cbits > 0) setTimeout(cardValue, ctimeout);
 }, ctimeout);
 
 
-// cleanup
-event.on('close', function() {
+// close module
+o.close = function() {
   pdata0.unexport();
   pdata1.unexport();
-});
+};
+
+
+// event handlers
+event.on('beep', function() { o.beep(); });

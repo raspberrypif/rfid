@@ -14,6 +14,7 @@ var storage = require('./modules/storage.js');
 var app = express();
 reader.on('card', function(cbits, card) {
   storage.emit('add', [{'time': new Date(), 'point': 0, 'card': card}], function(err, val) {
+    reader.emit('beep');
     console.log(err);
   });
 });
