@@ -20,10 +20,10 @@ pbeep.writeSync(1);
 
 // initialize
 console.log('pi-snax-reader');
-var card = 0, cbits = 0;
+var card = 0, cbits = 0, c = {};
 var o = new EventEmitter();
 module.exports = function(config) {
-  o.c = config;
+  c = config;
   return o;
 };
 
@@ -46,15 +46,15 @@ pdata1.watch(function(err, val) {
 // get card value
 var cardValue = function() {
   console.log('reader.card['+cbits+'] - '+card);
-  if(cbits >= minbits) o.emit('card', cbits, card);
+  if(cbits >= c.minbits) o.emit('card', cbits, card);
   card = cbits = 0;
 };
 
 
 // card read code
 setInterval(function() {
-  if(cbits > 0) setTimeout(cardValue, ctimeout);
-}, ctimeout);
+  if(cbits > 0) setTimeout(cardValue, c.ctimeout);
+}, c.ctimeout);
 
 
 
@@ -63,7 +63,7 @@ o.green = function(dur) {
   pgreen.writeSync(0);
   setTimeout(function() {
     pgreen.writeSync(1);
-  }, dur || greendur);
+  }, dur || c.greendur);
 };
 
 
@@ -72,7 +72,7 @@ o.beep = function(dur) {
   pbeep.writeSync(0);
   setTimeout(function() {
     pbeep.writeSync(1);
-  }, dur || beepdur);
+  }, dur || c.beepdur);
 };
 
 
