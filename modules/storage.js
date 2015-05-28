@@ -12,9 +12,9 @@ var file = 'data/storage.db';
 
 // initialize
 console.log('pi-snax-storage');
-var o = new EventEmitter();
+var event = new EventEmitter();
 var db = new sqlite3.Database(file);
-module.exports = o;
+module.exports = event;
 
 
 
@@ -90,4 +90,4 @@ event.on('add', function(vals, fn) {
 
 
 // close module
-o.close = db.close;
+// o.close = db.close;
