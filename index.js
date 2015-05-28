@@ -29,8 +29,15 @@ app.get('/', function(req, res) {
 });
 
 
-// beep interface
-app.get('/api/beep', function(req, res) {
+// reader.green interface
+app.all('/api/reader/green', function(req, res) {
+  // reader.emit('green');
+  res.send('0');
+});
+
+
+// reader.beep interface
+app.all('/api/reader/beep', function(req, res) {
   // reader.emit('beep');
   res.send('0');
 });

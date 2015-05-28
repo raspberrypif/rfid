@@ -8,13 +8,14 @@ var sqlite3 = require('sqlite3').verbose();
 
 // config
 var file = 'data/storage.db';
+var repeat = 1;
 
 
 // initialize
 console.log('pi-snax-storage');
-var event = new EventEmitter();
+var o = new EventEmitter();
 var db = new sqlite3.Database(file);
-module.exports = event;
+module.exports = o;
 
 
 
@@ -36,7 +37,7 @@ var removeOne = function(table, start, end) {
 
 
 // get data (one table)
-var getOne = function(arr, table, start, end) {
+var getOne = function(table, start, end, arr) {
   db.all('SELECT * FROM '+table+' WHERE time>=? AND time<=? ORDER BY ASC', start, end, function(err, rows) {
     if(rows.length > 0) arr.push.apply(arr, rows);
   });
@@ -44,10 +45,11 @@ var getOne = function(arr, table, start, end) {
 
 
 // add data (one record)
-var addOne = function(val, fn) {
+var addOne = function(val, arr) {
   var table = dateTable(val.time);
-  db.run('INSERT INTO '+table+'(card, point, time) VALUES (?, ?, ?)', val.card, val.point, val.time, function(err) {
-    if(err !== null) fn(err, val);
+  db.get('SELECT COUNT(*) FROM '+table+' WHERE card=?', val.card, function(err, row) {
+    if(row <= repeat) db.run('INSERT INTO '+table+'(card, point, time) VALUES (?, ?, ?)', val.card, val.point, val.time);
+    else arr.push(val);
   });
 };
 
@@ -55,39 +57,50 @@ var addOne = function(val, fn) {
 // create date tables
 var dateCreate = function(start, end) {
   for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1)) {
-    db.run('CREATE TABLE IF NOT EXISTS '+dateTable(t)+'(card INT PRIMARY KEY, point INTEGER, time DATETIME)');
+    db.run('CREATE TABLE IF NOT EXISTS '+dateTable(t)+'(card INTEGER, point INTEGER, time DATETIME)');
   }
 };
 
 
 
 // remove data from storage
-event.on('remove', function(start, end, fn) {
-  for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1))
-    removeOne(dateTable(t), start, end);
+o.remove = function(start, end, fn) {
+  db.serialize(function() {
+    for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1))
+      removeOne(dateTable(t), start, end);
+    db.run('VACUUM');
+  });
   if(typeof fn !== 'undefined') fn();
-});
+};
+event.on('remove', o.remove);
 
 
 // get data from storage
-event.on('get', function(start, end, fn) {
+o.get = function(start, end, fn) {
   var ans = [];
   for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1))
-    getOne(ans, dateTable(t), start, end);
+    getOne(dateTable(t), start, end, ans);
   if(typeof fn !== 'undefined') fn(ans);
-});
+};
+event.on('get', o.get);
 
 
 // add data to storage
-event.on('add', function(vals, fn) {
-  fn = fn || function() {};
+o.add = function(vals, fn) {
+  var ans = [];
+  fn = fn || function(arr) {};
   db.serialize(function() {
     dateCreate(vals[0].time, vals[vals.length-1].time);
     for(var i=0; i<vals.length; i++)
-      addOne(vals[i], fn);
+      addOne(vals[i], ans);
   });
+};
+event.on('add', function(vals, fn) {
 });
 
 
 // close module
-// o.close = db.close;
+o.close = db.close;
+
+
+// 

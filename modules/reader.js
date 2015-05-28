@@ -7,6 +7,8 @@ var Gpio = require('onoff').Gpio;
 
 
 // config
+var greendur = 1000;
+var beepdur = 2000;
 var ctimeout = 100;
 var minbits = 8;
 
@@ -53,12 +55,22 @@ var cardValue = function() {
 };
 
 
+
+// handle green request
+o.green = function(dur) {
+  pgreen.writeSync(0);
+  setTimeout(function() {
+    pgreen.writeSync(1);
+  }, dur || greendur);
+};
+
+
 // handle beep request
 o.beep = function(dur) {
   pbeep.writeSync(0);
   setTimeout(function() {
     pbeep.writeSync(1);
-  }, dur || 2000);
+  }, dur || beepdur);
 };
 
 
@@ -75,5 +87,7 @@ o.close = function() {
 };
 
 
+
 // event handlers
-event.on('beep', function() { o.beep(); });
+event.on('green', o.green);
+event.on('beep', o.beep);
