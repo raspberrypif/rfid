@@ -3,6 +3,7 @@
 
 // required modules
 var express = require('express');
+var sqlite3 = require('sqlite3').verbose();
 var config = require('./modules/config.js')('data/config.json');
 // var reader = require('./modules/reader.js');
 // var storage = require('./modules/storage.js');
@@ -14,6 +15,7 @@ var config = require('./modules/config.js')('data/config.json');
 
 // initialize
 var app = express();
+var db = new sqlite3.Database('data/storage.db');
 /*
 reader.on('card', function(cbits, card) {
   storage.emit('add', [{'time': new Date(), 'point': 0, 'card': card}], function(err, val) {
@@ -57,6 +59,9 @@ app.use(express.static(__dirname+'/assets'));
 // start server
 var server = app.listen(80, function() {
   console.log('pi-snax');
+  db.get('SELECT COUNT(*) FROM temp', function(err, row) {
+    console.log(JSON.stringify(row));
+  });
 });
 
 

@@ -6,101 +6,114 @@ var EventEmitter = require('events').EventEmitter;
 var sqlite3 = require('sqlite3').verbose();
 
 
-// config
-var file = 'data/storage.db';
-var repeat = 1;
-
-
 // initialize
 console.log('pi-snax-storage');
-var o = new EventEmitter();
+var o = new EventEmitter(), c = {};
 var db = new sqlite3.Database(file);
-module.exports = o;
+module.exports = function(config) {
+  c = config;
+  return o;
+};
 
 
 
 // get date table name
-var dateTable = function(t) {
+var table = function(t) {
   return 'date_'+t.getDate()+'_'+(t.getMonth()+1)+'_'+t.getFullYear();
 };
 
 
-// remove data (one table)
-var removeOne = function(table, start, end) {
-  db.serialize(function() {
-    db.run('DELETE FROM '+table+' WHERE time>=? AND time<=?', start, end);
-    db.get('SELECT * FROM '+table, function(err, row) {
-      if(typeof row === 'undefined') db.run('DROP TABLE '+table);
+// do domething if table exists
+var exists = function(tab, fn) {
+  db.get('SELECT name FROM sqlite_master WHERE type=? AND name=?', 'table', tab, function(err, row) {
+    if(typeof row !== 'undefined' && fn) fn();
+  });
+};
+
+
+// create date tables
+var create = function(start, end) {
+  for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1)) {
+    var tab = table(t);
+    db.run('CREATE TABLE IF NOT EXISTS '+tab+'(card INTEGER, point INTEGER, time DATETIME)');
+    db.run('CREATE TABLE IF NOT EXISTS '+tab+'_inv(card INTEGER, point INTEGER, time DATETIME)');
+  }
+};
+
+
+// clear data (one table)
+var clearone = function(tab, start, end) {
+  exists(tab, function() {
+    db.run('DELETE FROM '+tab+' WHERE time>=? AND time<=?', start, end);
+    db.get('SELECT COUNT(*) FROM '+tab, function(err, row) {
+      if(row['COUNT(*)'] === 0) db.run('DROP TABLE '+tab);
     });
   });
 };
 
 
 // get data (one table)
-var getOne = function(table, start, end, arr) {
-  db.all('SELECT * FROM '+table+' WHERE time>=? AND time<=? ORDER BY ASC', start, end, function(err, rows) {
-    if(rows.length > 0) arr.push.apply(arr, rows);
+var getone = function(tab, start, end, res) {
+  db.all('SELECT * FROM '+tab+' WHERE time>=? AND time<=? ORDER BY ASC', start, end, function(err, rows) {
+    if(!err) res.push.apply(res, rows);
   });
 };
 
 
-// add data (one record)
-var addOne = function(val, arr) {
-  var table = dateTable(val.time);
-  db.get('SELECT COUNT(*) FROM '+table+' WHERE card=?', val.card, function(err, row) {
-    if(row <= repeat) db.run('INSERT INTO '+table+'(card, point, time) VALUES (?, ?, ?)', val.card, val.point, val.time);
-    else arr.push(val);
+// put data (one record)
+var putone = function(v, inv) {
+  var tab = table(v.time);
+  db.get('SELECT COUNT(*) FROM '+tab+' WHERE card=?', v.card, function(err, row) {
+    if(row['COUNT(*)'] >= c.repeat) {
+      tab += '_inv';
+      inv.push(v);
+    }
+    db.run('INSERT INTO '+tab+'(card, point, time) VALUES (?, ?, ?)', v.card, v.point, v.time);
   });
 };
 
 
-// create date tables
-var dateCreate = function(start, end) {
-  for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1)) {
-    db.run('CREATE TABLE IF NOT EXISTS '+dateTable(t)+'(card INTEGER, point INTEGER, time DATETIME)');
-  }
-};
 
-
-
-// remove data from storage
-o.remove = function(start, end, fn) {
+// clear data from storage
+o.clear = function(type, start, end, fn) {
+  type = (type === 'inv')? '_inv' : '';
   db.serialize(function() {
     for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1))
-      removeOne(dateTable(t), start, end);
+      clearone(table(t)+type, start, end);
     db.run('VACUUM');
   });
-  if(typeof fn !== 'undefined') fn();
+  if(fn) fn();
 };
-event.on('remove', o.remove);
 
 
 // get data from storage
-o.get = function(start, end, fn) {
-  var ans = [];
+o.get = function(type, start, end, fn) {
+  var vld = [];
+  type = (type === 'inv')? '_inv' : '';
   for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1))
-    getOne(dateTable(t), start, end, ans);
-  if(typeof fn !== 'undefined') fn(ans);
+    getone(table(t)+type, start, end, vld);
+  if(fn) fn(vld);
 };
-event.on('get', o.get);
 
 
-// add data to storage
-o.add = function(vals, fn) {
-  var ans = [];
-  fn = fn || function(arr) {};
+// put data to storage
+o.put = function(vals, fn) {
+  var inv = [];
   db.serialize(function() {
-    dateCreate(vals[0].time, vals[vals.length-1].time);
+    create(vals[0].time, vals[vals.length-1].time);
     for(var i=0; i<vals.length; i++)
-      addOne(vals[i], ans);
+      putone(vals[i], inv);
   });
+  if(fn) fn(inv);
 };
-event.on('add', function(vals, fn) {
-});
 
 
 // close module
 o.close = db.close;
 
 
-// 
+
+// event handling
+o.on('clear', o.remove);
+o.on('get', o.get);
+o.on('put', o.put);

@@ -8,8 +8,7 @@ var fs = require('fs');
 
 // initialize
 console.log('pi-snax-config');
-var file = '';
-var o = new EventEmitter();
+var o = new EventEmitter(), file = '';
 module.exports = function(cfile) {
   file = cfile;
   o.load();
