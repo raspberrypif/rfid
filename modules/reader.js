@@ -55,6 +55,12 @@ var cardValue = function() {
 };
 
 
+// card read code
+setInterval(function() {
+  if(cbits > 0) setTimeout(cardValue, ctimeout);
+}, ctimeout);
+
+
 
 // handle green request
 o.green = function(dur) {
@@ -72,12 +78,6 @@ o.beep = function(dur) {
     pbeep.writeSync(1);
   }, dur || beepdur);
 };
-
-
-// card read code
-setInterval(function() {
-  if(cbits > 0) setTimeout(cardValue, ctimeout);
-}, ctimeout);
 
 
 // close module
