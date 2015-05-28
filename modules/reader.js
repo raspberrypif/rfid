@@ -6,13 +6,6 @@ var EventEmitter = require('events').EventEmitter;
 var Gpio = require('onoff').Gpio;
 
 
-// config
-var greendur = 1000;
-var beepdur = 2000;
-var ctimeout = 100;
-var minbits = 8;
-
-
 // connections
 var pdata0 = new Gpio(14, 'in', 'falling');
 var pdata1 = new Gpio(15, 'in', 'falling');
@@ -29,7 +22,10 @@ pbeep.writeSync(1);
 console.log('pi-snax-reader');
 var card = 0, cbits = 0;
 var o = new EventEmitter();
-module.exports = o;
+module.exports = function(config) {
+  o.c = config;
+  return o;
+};
 
 
 

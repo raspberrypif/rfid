@@ -6,27 +6,26 @@ var EventEmitter = require('events').EventEmitter;
 var fs = require('fs');
 
 
-// config
-var file = 'data/config.json';
-
-
 // initialize
 console.log('pi-snax-config');
 var o = new EventEmitter();
-module.exports = o;
-o.val = {};
+module.exports = function(file) {
+  o.file = file;
+  o.load();
+  return o;
+};
 
 
 
 // load config data
 o.load = function() {
-  o.val = JSON.parse(fs.readFileSync(file));
+  o.val = JSON.parse(fs.readFileSync(o.file));
 };
 
 
 // save config data
 o.save = function() {
-  fs.writeFileSync(file, JSON.stringify(o.val));
+  fs.writeFileSync(o.file, JSON.stringify(o.val));
 };
 
 
@@ -37,7 +36,7 @@ o.close = o.save;
 
 // load config data (async)
 o.on('load', function() {
-  fs.readFile(file, function(err, data) {
+  fs.readFile(o.file, function(err, data) {
     o.val = JSON.parse(data);
   });
 });
@@ -45,7 +44,7 @@ o.on('load', function() {
 
 // save config data (async)
 o.on('save', function() {
-  fs.writeFile(file, JSON.stringify(o.val), function(err) {
+  fs.writeFile(o.file, JSON.stringify(o.val), function(err) {
     if(err) throw err;
   });
 });

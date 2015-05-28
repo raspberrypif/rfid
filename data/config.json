@@ -4,4 +4,10 @@
     "end": "19:30:00"
   },
   "max-repeat": 1,
+  "reader": {
+    "greendur": 1000,
+    "beepdur": 2000,
+    "ctimeout": 100,
+    "minbits": 8
+  }
 }

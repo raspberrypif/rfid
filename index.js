@@ -3,8 +3,9 @@
 
 // required modules
 var express = require('express');
+var config = require('./modules/config.js')('data/config.json');
 // var reader = require('./modules/reader.js');
-var storage = require('./modules/storage.js');
+// var storage = require('./modules/storage.js');
 
 
 // config
@@ -26,6 +27,12 @@ reader.on('card', function(cbits, card) {
 // main page
 app.get('/', function(req, res) {
   res.sendFile(__dirname+'/assets/index.html');
+});
+
+
+// config interface
+app.get('/api/config', function(req, res) {
+  res.json(config.val);
 });
 
 
@@ -58,5 +65,5 @@ var server = app.listen(80, function() {
 process.on('SIGINT', function() {
   server.close();
   // reader.emit('close');
-  storage.emit('close');
+  // storage.emit('close');
 });
