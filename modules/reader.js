@@ -83,7 +83,13 @@ module.exports = function(c) {
 
   // tell invalid
   o.tellinv = function() {
-    o.beep(c.invdur);
+    var t = c.invdur;
+    var fn = function() {
+      o.beep(c.vlddur/2);
+      t -= c.vlddur;
+      if(t > 0) setTimeout(fn, c.vlddur);
+    };
+    fn();
   };
 
 

@@ -124,8 +124,8 @@ var server = app.listen(c.port, function() {
 reader.on('card', function(cbits, card) {
   console.log('['+cbits+'] : '+card);
   storage.put([{'time': new Date(), 'point': 0, 'card': card}], function(inv) {
-    console.log('inv = '+JSON.stringify(inv));
     if(inv.length > 0) { reader.tellinv(); console.log('invalid!'); }
+    else { reader.tellvld(); console.log('valid'); }
   });
 });
 

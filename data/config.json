@@ -3,7 +3,7 @@
     "port": 80
   },
   "reader": {
-    "vlddur": 500,
+    "vlddur": 250,
     "invdur": 2000,
     "greendur": 1000,
     "beepdur": 2000,

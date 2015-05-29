@@ -20,3 +20,10 @@ header .name {
 header a {
   color: #EEE;
 }
+
+
+/* chart */
+#chart {
+  width: 100%;
+  height: 400px;
+}
