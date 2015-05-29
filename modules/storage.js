@@ -89,11 +89,11 @@ module.exports = function(c) {
 
   // get data from storage
   o.get = function(type, start, end, fn) {
-    var vld = [];
+    var vals = [];
     type = (type === 'inv')? '_inv' : '';
     for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1))
-      getone(table(t)+type, start, end, vld);
-    if(fn) fn(vld);
+      getone(table(t)+type, start, end, vals);
+    if(fn) fn(vals);
   };
 
 
