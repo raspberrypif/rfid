@@ -68,7 +68,6 @@ module.exports = function(c) {
         tab += '_inv';
         inv.push(_.clone(v));
       }
-      console.log(tab);
       db.run('INSERT INTO '+tab+'(card, point, time) VALUES (?, ?, ?)', v.card, v.point, v.time);
     });
   };
@@ -105,7 +104,6 @@ module.exports = function(c) {
       for(var i=0; i<vals.length; i++)
         putone(vals[i], inv);
     });
-    console.log('storage:'+JSON.stringify(inv));
     if(fn) fn(inv);
   };
 

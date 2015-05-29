@@ -3,6 +3,7 @@
 
 // required modules
 var EventEmitter = require('events').EventEmitter;
+var _ = require('lodash');
 var fs = require('fs');
 
 
@@ -11,44 +12,61 @@ var fs = require('fs');
 module.exports = function(file) {
   var o = new EventEmitter();
 
+  // config value
+  var val = {};
 
 
-  // load config data
-  o.load = function() {
-    o.val = JSON.parse(fs.readFileSync(file));
+  // get config
+  o.get = function() {
+    return val;
   };
 
 
-  // save config data
-  o.save = function() {
-    fs.writeFileSync(file, JSON.stringify(o.val));
+  // set config
+  o.set = function(v) {
+    _.assign(val, v);
+  };
+
+
+  // load config
+  o.load = function(fn) {
+    fs.readFile(file, function(err, data) {
+      if(err) throw err;
+      _.assign(val, JSON.parse(data));
+      if(fn) fn(val);
+    });
+  };
+
+
+  // save config
+  o.save = function(fn) {
+    fs.writeFile(file, JSON.stringify(val), function(err) {
+      if(err) throw err;
+      if(fn) fn();
+    });
+  };
+
+
+  // load config (now)
+  o.loadnow = function() {
+    _.assign(val, JSON.parse(fs.readFileSync(file)));
+    return val;
+  };
+
+
+  // save config (now)
+  o.savenow = function() {
+    fs.writeFileSync(file, JSON.stringify(val));
   };
 
 
   // close module
-  o.close = o.save;
+  o.close = o.savenow;
 
 
 
-  // load config data (async)
-  o.on('load', function() {
-    fs.readFile(file, function(err, data) {
-      o.val = JSON.parse(data);
-    });
-  });
-
-
-  // save config data (async)
-  o.on('save', function() {
-    fs.writeFile(file, JSON.stringify(o.val), function(err) {
-      if(err) throw err;
-    });
-  });
-
-
-
-  // load config
-  o.load();
+  // load config now
+  o.loadnow();
 
   // ready!
   console.log('config ready!');
