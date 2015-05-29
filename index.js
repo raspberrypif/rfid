@@ -2,41 +2,41 @@
 
 
 // required modules
-var _ = require('lodash');
 var express = require('express');
 var bodyParser = require('body-parser');
+
+
+
+// init config
 var config = require('./modules/config.js')('data/config.json');
-var reader = require('./modules/reader.js')(config.val.reader);
-var storage = require('./modules/storage.js')(config.val.storage);
+var cv = config.get();
+var c = cv.index;
 
+// init parts
+var reader = require('./modules/reader.js')(cv.reader);
+var storage = require('./modules/storage.js')(cv.storage);
 
-// initialize
+// init express
 var app = express();
-var c = config.val.index;
-reader.on('card', function(cbits, card) {
-  storage.emit('put', [{'time': new Date(), 'point': 0, 'card': card}], function(inv) {
-    console.log(JSON.stringify(inv));
-    if(inv.length > 0) { reader.emit('beep'); console.log('invalid!'); }
-  });
-});
 
 
-// main page
-app.get('/', function(req, res) {
+
+// index page
+app.all('/', function(req, res) {
   res.sendFile(__dirname+'/assets/index.html');
 });
 
 
-// config get interface
-app.get('/api/config', function(req, res) {
-  res.json(config.val);
+// config.get interface
+app.all('/api/config/get', function(req, res) {
+  res.json(config.get());
 });
 
 
-// config put interface
-app.post('/api/config', function(req, res) {
+// config.set interface
+app.all('/api/config/set', function(req, res) {
   var p = req.body;
-  _.assign(config.val, p.val);
+  config.put(p.val);
   res.send('ok');
 });
 
@@ -116,6 +116,15 @@ app.use(function(req, res, next){
 // start server
 var server = app.listen(80, function() {
   console.log('pi-rfid ready!');
+});
+
+
+
+reader.on('card', function(cbits, card) {
+  storage.emit('put', [{'time': new Date(), 'point': 0, 'card': card}], function(inv) {
+    console.log(JSON.stringify(inv));
+    if(inv.length > 0) { reader.emit('beep'); console.log('invalid!'); }
+  });
 });
 
 
