@@ -120,11 +120,12 @@ var server = app.listen(c.port, function() {
 
 
 
-// handle reader
+// handle card
 reader.on('card', function(cbits, card) {
-  storage.emit('put', [{'time': new Date(), 'point': 0, 'card': card}], function(inv) {
-    console.log(JSON.stringify(inv));
-    if(inv.length > 0) { reader.emit('beep'); console.log('invalid!'); }
+  console.log('['+cbits+'] : '+card);
+  storage.put([{'time': new Date(), 'point': 0, 'card': card}], function(inv) {
+    console.log('inv = '+JSON.stringify(inv));
+    if(inv.length > 0) { reader.tellinv(); console.log('invalid!'); }
   });
 });
 

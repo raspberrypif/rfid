@@ -4,7 +4,6 @@
 // required modules
 var EventEmitter = require('events').EventEmitter;
 var sqlite3 = require('sqlite3').verbose();
-var _ = require('lodash');
 
 
 
@@ -12,26 +11,25 @@ var _ = require('lodash');
 module.exports = function(c) {
   var o = new EventEmitter();
 
-  // init database
+  // init
   var db = new sqlite3.Database(c.file);
 
 
-
-  // get date table name
+  // table name
   var table = function(t) {
     return 'date_'+t.getDate()+'_'+(t.getMonth()+1)+'_'+t.getFullYear();
   };
 
 
-  // do domething if table exists
+  // table exists?
   var exists = function(tab, fn) {
-    db.get('SELECT name FROM sqlite_master WHERE type=? AND name=?', 'table', tab, function(err, row) {
-      if(typeof row !== 'undefined' && fn) fn();
+    db.get('SELECT COUNT(*) FROM sqlite_master WHERE type=? AND name=?', 'table', tab, function(err, row) {
+      if(row['COUNT(*)'] === 1 && fn) fn();
     });
   };
 
 
-  // create date tables
+  // create tables
   var create = function(start, end) {
     for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1)) {
       var tab = table(t);
@@ -66,7 +64,7 @@ module.exports = function(c) {
     db.get('SELECT COUNT(*) FROM '+tab+' WHERE card=?', v.card, function(err, row) {
       if(row['COUNT(*)'] >= c.repeat) {
         tab += '_inv';
-        inv.push(_.clone(v));
+        inv.push(v);
       }
       db.run('INSERT INTO '+tab+'(card, point, time) VALUES (?, ?, ?)', v.card, v.point, v.time);
     });
@@ -80,9 +78,8 @@ module.exports = function(c) {
     db.serialize(function() {
       for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1))
         clearone(table(t)+type, start, end);
-      db.run('VACUUM');
+      db.run('VACUUM', fn);
     });
-    if(fn) fn();
   };
 
 
@@ -90,9 +87,13 @@ module.exports = function(c) {
   o.get = function(type, start, end, fn) {
     var vals = [];
     type = (type === 'inv')? '_inv' : '';
-    for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1))
-      getone(table(t)+type, start, end, vals);
-    if(fn) fn(vals);
+    db.serialize(function() {
+      for(var t=new Date(start.getTime()); t<=end; t.setDate(t.getDate()+1))
+        getone(table(t)+type, start, end, vals);
+      db.run('PRAGMA no_op', function() {
+        if(fn) fn(vals);
+      });
+    });
   };
 
 
@@ -103,20 +104,15 @@ module.exports = function(c) {
       create(vals[0].time, vals[vals.length-1].time);
       for(var i=0; i<vals.length; i++)
         putone(vals[i], inv);
+      db.run('PRAGMA no_op', function() {
+        if(fn) fn(inv);
+      });
     });
-    if(fn) fn(inv);
   };
 
 
   // close module
   o.close = db.close;
-
-
-
-  // event handling
-  o.on('clear', o.clear);
-  o.on('get', o.get);
-  o.on('put', o.put);
 
 
 
