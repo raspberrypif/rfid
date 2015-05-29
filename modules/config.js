@@ -6,6 +6,7 @@ var EventEmitter = require('events').EventEmitter;
 var fs = require('fs');
 
 
+
 // initialize
 module.exports = function(file) {
   var o = new EventEmitter();

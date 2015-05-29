@@ -7,6 +7,7 @@ var sqlite3 = require('sqlite3').verbose();
 var _ = require('lodash');
 
 
+
 // initialize
 module.exports = function(c) {
   var o = new EventEmitter();

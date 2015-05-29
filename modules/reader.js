@@ -6,24 +6,25 @@ var EventEmitter = require('events').EventEmitter;
 var Gpio = require('onoff').Gpio;
 
 
-// connections
-var pdata0 = new Gpio(14, 'in', 'falling');
-var pdata1 = new Gpio(15, 'in', 'falling');
-var pgreen = new Gpio(18, 'out');
-var pbeep = new Gpio(24, 'out');
-pgreen.writeSync(1);
-pbeep.writeSync(1);
-// var pred = 23
-// var phold = 25
-// var pcard = 8
-
 
 // initialize
-console.log('pi-snax-reader');
-var card = 0, cbits = 0, c = {};
-var o = new EventEmitter();
-module.exports = function(config) {
-  c = config;
+module.exports = function(c) {
+  var o = new EventEmitter();
+
+  // init
+  var card = 0, cbits = 0;
+
+
+  // connections
+  var pdata0 = new Gpio(14, 'in', 'falling');
+  var pdata1 = new Gpio(15, 'in', 'falling');
+  var pgreen = new Gpio(18, 'out');
+  var pbeep = new Gpio(24, 'out');
+  pgreen.writeSync(1);
+  pbeep.writeSync(1);
+  // var pred = 23
+  // var phold = 25
+  // var pcard = 8
 
 
   // get card value
@@ -40,53 +41,72 @@ module.exports = function(config) {
   }, c.ctimeout);
 
 
-  // return
+
+  // handle card data0 low
+  pdata0.watch(function(err, val) {
+    card <<= 1;
+    cbits += 1;
+  });
+
+
+  // handle card data1 low
+  pdata1.watch(function(err, val) {
+    card = (card << 1) | 1;
+    cbits += 1;
+  });
+
+
+
+  // handle green request
+  o.green = function(dur) {
+    pgreen.writeSync(0);
+    setTimeout(function() {
+      pgreen.writeSync(1);
+    }, dur || c.greendur);
+  };
+
+
+  // handle beep request
+  o.beep = function(dur) {
+    pbeep.writeSync(0);
+    setTimeout(function() {
+      pbeep.writeSync(1);
+    }, dur || c.beepdur);
+  };
+
+
+  // tell valid
+  o.tellvld = function() {
+    o.green(c.vlddur);
+    o.beep(c.vlddur);
+  };
+
+
+  // tell invalid
+  o.tellinv = function() {
+    o.beep(c.invdur);
+  };
+
+
+  // close module
+  o.close = function() {
+    pdata0.unexport();
+    pdata1.unexport();
+    pgreen.unexport();
+    pbeep.unexport();
+  };
+
+
+
+  // event handlers
+  o.on('green', o.green);
+  o.on('beep', o.beep);
+  o.on('tellvld', o.tellvld);
+  o.on('tellinv', o.tellinv);
+
+
+
+  // ready!
+  console.log('reader ready!');
   return o;
 };
-
-
-
-// handle card data0 low
-pdata0.watch(function(err, val) {
-  card <<= 1;
-  cbits += 1;
-});
-
-
-// handle card data1 low
-pdata1.watch(function(err, val) {
-  card = (card << 1) | 1;
-  cbits += 1;
-});
-
-
-
-// handle green request
-o.green = function(dur) {
-  pgreen.writeSync(0);
-  setTimeout(function() {
-    pgreen.writeSync(1);
-  }, dur || c.greendur);
-};
-
-
-// handle beep request
-o.beep = function(dur) {
-  pbeep.writeSync(0);
-  setTimeout(function() {
-    pbeep.writeSync(1);
-  }, dur || c.beepdur);
-};
-
-
-// close module
-o.close = function() {
-  pdata0.unexport();
-  pdata1.unexport();
-};
-
-
-
-// event handlers
-o.on('green', o.green);
-o.on('beep', o.beep);

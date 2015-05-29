@@ -1,5 +1,7 @@
 {
   "reader": {
+    "vlddur": 500,
+    "invdur": 2000,
     "greendur": 1000,
     "beepdur": 2000,
     "ctimeout": 100,
