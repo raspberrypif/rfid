@@ -29,7 +29,6 @@ module.exports = function(c) {
 
   // get card value
   var cardValue = function() {
-    console.log('reader.card['+cbits+'] - '+card);
     if(cbits >= c.minbits) o.emit('card', cbits, card);
     card = cbits = 0;
   };
@@ -95,14 +94,6 @@ module.exports = function(c) {
     pgreen.unexport();
     pbeep.unexport();
   };
-
-
-
-  // event handlers
-  o.on('green', o.green);
-  o.on('beep', o.beep);
-  o.on('tellvld', o.tellvld);
-  o.on('tellinv', o.tellinv);
 
 
 

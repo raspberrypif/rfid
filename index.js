@@ -114,12 +114,13 @@ app.use(function(req, res, next){
 
 
 // start server
-var server = app.listen(80, function() {
+var server = app.listen(c.port, function() {
   console.log('pi-rfid ready!');
 });
 
 
 
+// handle reader
 reader.on('card', function(cbits, card) {
   storage.emit('put', [{'time': new Date(), 'point': 0, 'card': card}], function(inv) {
     console.log(JSON.stringify(inv));

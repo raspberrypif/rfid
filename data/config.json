@@ -1,4 +1,7 @@
 {
+  "index": {
+    "port": 80
+  },
   "reader": {
     "vlddur": 500,
     "invdur": 2000,
