@@ -4,14 +4,17 @@
 // required modules
 var EventEmitter = require('events').EventEmitter;
 var sqlite3 = require('sqlite3').verbose();
+var _ = require('lodash');
 
 
 // initialize
 console.log('pi-snax-storage');
-var o = new EventEmitter(), c = {};
-var db = new sqlite3.Database(file);
+var o = new EventEmitter(), db = {}, c = {};
 module.exports = function(config) {
   c = config;
+  // init database
+  db = new sqlite3.Database(config.file);
+  // return
   return o;
 };
 
@@ -66,8 +69,9 @@ var putone = function(v, inv) {
   db.get('SELECT COUNT(*) FROM '+tab+' WHERE card=?', v.card, function(err, row) {
     if(row['COUNT(*)'] >= c.repeat) {
       tab += '_inv';
-      inv.push(v);
+      inv.push(_.clone(v));
     }
+    console.log(tab);
     db.run('INSERT INTO '+tab+'(card, point, time) VALUES (?, ?, ?)', v.card, v.point, v.time);
   });
 };
@@ -104,6 +108,7 @@ o.put = function(vals, fn) {
     for(var i=0; i<vals.length; i++)
       putone(vals[i], inv);
   });
+  console.log('storage:'+JSON.stringify(inv));
   if(fn) fn(inv);
 };
 
@@ -114,6 +119,6 @@ o.close = db.close;
 
 
 // event handling
-o.on('clear', o.remove);
+o.on('clear', o.clear);
 o.on('get', o.get);
 o.on('put', o.put);

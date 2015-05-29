@@ -24,6 +24,23 @@ var card = 0, cbits = 0, c = {};
 var o = new EventEmitter();
 module.exports = function(config) {
   c = config;
+
+
+  // get card value
+  var cardValue = function() {
+    console.log('reader.card['+cbits+'] - '+card);
+    if(cbits >= c.minbits) o.emit('card', cbits, card);
+    card = cbits = 0;
+  };
+
+
+  // card read code
+  setInterval(function() {
+    if(cbits > 0) setTimeout(cardValue, c.ctimeout);
+  }, c.ctimeout);
+
+
+  // return
   return o;
 };
 
@@ -41,20 +58,6 @@ pdata1.watch(function(err, val) {
   card = (card << 1) | 1;
   cbits += 1;
 });
-
-
-// get card value
-var cardValue = function() {
-  console.log('reader.card['+cbits+'] - '+card);
-  if(cbits >= c.minbits) o.emit('card', cbits, card);
-  card = cbits = 0;
-};
-
-
-// card read code
-setInterval(function() {
-  if(cbits > 0) setTimeout(cardValue, c.ctimeout);
-}, c.ctimeout);
 
 
 
@@ -85,5 +88,5 @@ o.close = function() {
 
 
 // event handlers
-event.on('green', o.green);
-event.on('beep', o.beep);
+o.on('green', o.green);
+o.on('beep', o.beep);
