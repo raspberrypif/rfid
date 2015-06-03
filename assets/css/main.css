@@ -22,6 +22,12 @@ header a {
 }
 
 
+/* footer */
+footer {
+  padding-bottom: 2rem;
+}
+
+
 /* chart */
 #chart {
   width: 100%;

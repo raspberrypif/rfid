@@ -2,10 +2,31 @@
 
 
 // config
-var geturl = '/api/storage/get';
-var getdur = 5000;
+var loadurl = '/api/storage/get';
+var loaddur = 5000;
+
+/*
+// init
+var end = new Date(), start = new Date(end.getTime());
+start.setMonth(end.getMonth()-1);
 
 
+// count data within ranges
+var rangeCount = function(vs, start, end, n) {
+  var res = _.fill(Array(pts), 0), range = end-start;
+  for(var i=0; i<vs.length; i++)
+    res[Math.round(((vs[i]-start)/range)*n)]++;
+  return res;
+};
+
+
+// get chart data
+var chartData = function(vals, start, end, n) {
+  var vs = _.pluck(vals, 'time');
+  var c = rangeCount(vs, start, end, n);
+  return _.zip(_.range(start, end, (end-start)/n), c);
+};
+*/
 
 // on ready
 $(document).ready(function() {
@@ -16,9 +37,15 @@ $(document).ready(function() {
   });
   $('[is]').tooltip();
 
+  // datepicker
+  $('.datepicker').pickadate({
+    selectMonths: true, // Creates a dropdown to control month
+    selectYears: 15 // Creates a dropdown of 15 years to control year
+  });
 
+  /*
   // create chart
-  var c = $('#chart').highcharts('StockChart', {
+  var chart = $('#chart').highcharts('StockChart', {
     'tooltip': {
       'pointFormat': '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>'
     },
@@ -35,37 +62,22 @@ $(document).ready(function() {
   });
 
 
-  var getdata = function(start, end) {
-    $.getJSON(geturl, {
+  // load chart data
+  var loadData = function(type, start, end) {
+    var s = type==='inv'? 1 : 0;
+    $.getJSON(loadurl, {
       'type': '',
       'start': start,
       'end': end
     }, function(data) {
-      c.series[0].setData();
+      chart.series[s].setData(chartData(data));
     });
   };
+
+
+  // refresh chart
   setInterval(function() {
-    $.getJSON(geturl, {
-      'type': '',
-      'start': new Date()
-    }, function() {});
-  }, getdur);
-      $.each(names, function (i, name) {
-        $.getJSON('http://www.highcharts.com/samples/data/jsonp.php?filename=' + name.toLowerCase() + '-c.json&callback=?',    function (data) {
-          seriesOptions[i] = {
-            'name': name,
-            'data': data
-          };
-
-          // As we're loading the data asynchronously, we don't know what order it will arrive. So
-          // we keep a counter and create the chart when all the data is loaded.
-          seriesCounter += 1;
-          if (seriesCounter === names.length) {
-            createChart();
-          }
-        });
-      });
-  });
-
-
+    loadData('', );
+  }, loaddur);
+  */
 });
