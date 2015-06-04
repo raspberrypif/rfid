@@ -1,4 +1,6 @@
 // @wolfram77
+// CONFIG - maintains config for all other modules
+// () - get, set, load, save, loadnow, savenow, close
 
 
 // required modules

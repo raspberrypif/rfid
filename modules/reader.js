@@ -1,4 +1,6 @@
 // @wolfram77
+// READER - controls wiegand rfid reader, and receives data from it
+// e - card; () - green, beep, tellvld, tellinv, close
 
 
 // required modules

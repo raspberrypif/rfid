@@ -115,7 +115,7 @@ app.use(function(req, res, next){
 
 // start server
 var server = app.listen(c.port, function() {
-  console.log('pi-rfid ready!');
+  console.log('ready!');
 });
 
 
