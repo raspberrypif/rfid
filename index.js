@@ -20,6 +20,10 @@ var storage = require('./modules/storage.js')(cv.storage);
 var app = express();
 
 
+// handle form, json request
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
 
 // index page
 app.all('/', function(req, res) {
@@ -36,7 +40,8 @@ app.all('/api/config/get', function(req, res) {
 // config.set interface
 app.all('/api/config/set', function(req, res) {
   var p = req.body;
-  config.put(p.val);
+  if(!p) { res.send('err'); return; }
+  config.set(p.val);
   res.send('ok');
 });
 
@@ -45,7 +50,8 @@ app.all('/api/config/set', function(req, res) {
 // reader.green interface
 app.all('/api/reader/green', function(req, res) {
   var p = req.body;
-  reader.green(p.dur);
+  if(p) reader.green(p.dur);
+  else reader.green();
   res.send('ok');
 });
 
@@ -53,7 +59,8 @@ app.all('/api/reader/green', function(req, res) {
 // reader.beep interface
 app.all('/api/reader/beep', function(req, res) {
   var p = req.body;
-  reader.beep(p.dur);
+  if(p) reader.beep(p.dur);
+  else reader.beep();
   res.send('ok');
 });
 
@@ -76,7 +83,8 @@ app.all('/api/reader/tellinv', function(req, res) {
 // storage.clear interface
 app.all('/api/storage/clear', function(req, res) {
   var p = req.body;
-  storage.clear(p.type, p.start, p.end, function() {
+  if(!p) { res.send('err'); return; }
+  storage.clear(p.start, p.end, function() {
     res.send('ok');
   });
 });
@@ -85,8 +93,9 @@ app.all('/api/storage/clear', function(req, res) {
 // storage.get interface
 app.all('/api/storage/get', function(req, res) {
   var p = req.body;
-  storage.get(p.type, p.start, p.end, function(vals) {
-    res.send(vals);
+  if(!p) { res.send('err'); return; }
+  storage.get(p.req, function(res) {
+    res.send(res);
   });
 });
 
@@ -94,8 +103,9 @@ app.all('/api/storage/get', function(req, res) {
 // storage.put interface
 app.all('/api/storage/put', function(req, res) {
   var p = req.body;
-  storage.put(p.vals, function(inv) {
-    res.send(inv);
+  if(!p) { res.send('err'); return; }
+  storage.put(p.req, function() {
+    res.send('ok');
   });
 });
 
@@ -123,9 +133,9 @@ var server = app.listen(c.port, function() {
 // handle card
 reader.on('card', function(cbits, card) {
   console.log('['+cbits+'] : '+card);
-  storage.put([{'time': new Date(), 'point': 0, 'card': card}], function(inv) {
-    if(inv.length > 0) { reader.tellinv(); console.log('invalid!'); }
-    else { reader.tellvld(); console.log('valid'); }
+  storage.add({'time': new Date(), 'point': 0, 'card': card}, function(valid) {
+    if(valid) { reader.tellvld(); console.log('valid'); }
+    else { reader.tellinv(); console.log('invalid!'); }
   });
 });
 
