@@ -94,7 +94,7 @@ module.exports = function(c) {
 
 
   // get data
-  // pvs = {point:{start, end}}
+  // req = {point:{start, end}}
   o.get = function(req, fn) {
     var pvs = {};
     db.serialize(function() {
