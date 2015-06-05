@@ -101,35 +101,30 @@ module.exports = function(c) {
   };
 
 
-  // get data from storage
-  // req = { point:{ state:{ start_millis, end_millis}}}
+  // get data
+  // pvs = {point:{start, end}}
   o.get = function(req, fn) {
-    var res = {};
+    var pvs = {};
     db.serialize(function() {
       for(var p in req) {
-        var pv = req[p], rpv = {};
-        for(var s in pv) {
-          var sv = pv[s], rsv = [];
-          getone(new Date(sv.start), new Date(sv.end), p, s, rsv);
-          rpv[s] = rsv;
-        }
-        res[p] = rpv;
+        pvs[p] = {'vld':[], 'inv':[]};
+        getone(req[p].start, req[p].end, p, 'vld', pvs[p].vld);
+        getone(req[p].start, req[p].end, p, 'inv', pvs[p].inv);
       }
       db.run('PRAGMA no_op', function() {
-        if(fn) fn(res);
+        if(fn) fn(pvs);
       });
     });
   };
 
 
-  // put data to storage
-  // req = { point:{ state:[[time_millis, card]]}}
-  o.put = function(req, fn) {
+  // put data
+  // pvs = {point:{state:[[time_millis, card]]}}
+  o.put = function(pvs, fn) {
     db.serialize(function() {
-      for(var p in res) {
-        var pv = req[p];
-        for(var s in pv)
-          putone(pv[s], p, s);
+      for(var p in pvs) {
+        putone(pvs.vld, p, 'vld');
+        putone(pvs.inv, p, 'inv');
       }
       db.run('PRAGMA no_op', function() {
         if(fn) fn();

@@ -2,6 +2,19 @@
   "index": {
     "port": 80
   },
+  "family": {
+    "point": "<name>",
+    "cyclegap": 5000,
+    "nextgap": 200,
+    "points": {
+      "<name2>": {
+        "host": "192.168.1.1",
+        "port": 80,
+        "synctime": "",
+        "syncdelay": ""
+      }
+    }
+  },
   "reader": {
     "vlddur": 250,
     "invdur": 2000,
