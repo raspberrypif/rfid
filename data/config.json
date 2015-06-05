@@ -4,14 +4,13 @@
   },
   "family": {
     "point": "<name>",
-    "cyclegap": 5000,
-    "nextgap": 200,
+    "synctime": "",
     "points": {
       "<name2>": {
         "host": "192.168.1.1",
         "port": 80,
         "synctime": "",
-        "syncdelay": ""
+        "syncgap": ""
       }
     }
   },
@@ -31,4 +30,5 @@
       "end": "19:30:00"
     }
   },
+  "savegap": 5000
 }

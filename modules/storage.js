@@ -17,72 +17,64 @@ module.exports = function(c) {
 
   // init
   var db = new sqlite3.Database(c.file);
+  var daymillis = 86400000;
 
 
-  // table name (date, state)
-  var table = function(d, s) {
+  // table name (time, state)
+  var table = function(t, s) {
+    var d = new Date(t);
     return 'date_'+d.getDate()+'_'+(d.getMonth()+1)+'_'+d.getFullYear()+(s? '_'+s:'');
   };
 
 
   // create tables
   var create = function(start, end) {
-    for(var d=new Date(start.getTime()); d<=end; d.setDate(d.getDate()+1)) {
-      db.run('CREATE TABLE IF NOT EXISTS '+table(d, 'vld')+'(time DATETIME, point TEXT, card INTEGER)');
-      db.run('CREATE TABLE IF NOT EXISTS '+table(d, 'inv')+'(time DATETIME, point TEXT, card INTEGER)');
+    for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
+      db.run('CREATE TABLE IF NOT EXISTS '+table(d.getTime(), 'vld')+'(time INTEGER, point TEXT, card INTEGER)');
+      db.run('CREATE TABLE IF NOT EXISTS '+table(d.getTime(), 'inv')+'(time INTEGER, point TEXT, card INTEGER)');
     }
   };
 
 
   // clear tables (drop)
   var clear = function(start, end) {
-    for(var d=new Date(start.getTime()); d<=end; d.setDate(d.getDate()+1)) {
-      db.run('DROP TABLE IF EXISTS '+table(d, 'vld'));
-      db.run('DROP TABLE IF EXISTS '+table(d, 'inv'));
+    for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
+      db.run('DROP TABLE IF EXISTS '+table(d.getTime(), 'vld'));
+      db.run('DROP TABLE IF EXISTS '+table(d.getTime(), 'inv'));
     }
   };
 
 
   // convert from rows format
-  // res = [[time_millis, card]]
-  var fromrows = function(rows, res) {
+  // psvs = [[time, card]]
+  var fromrows = function(rows, psvs) {
     for(var i=0; i<rows.length; i++)
-      res.push([rows[i].time.getTime(), rows[i].card]);
-    return res;
-  };
-
-
-  // convert to rows format
-  // rows = [{time, point, card}]
-  var torows = function(req, p, rows) {
-    for(var i=0; i<req.length; i++)
-      rows.push({'time': new Date(req[i][0]), 'point': p, 'card': req[i][1]});
-    return rows;
+      psvs.push([rows[i].time, rows[i].card]);
+    return psvs;
   };
 
 
   // get data (one point & state)
-  // res = [[time_millis, card]]
-  var getone = function(start, end, p, s, res) {
-    for(var d=new Date(start.getTime()); d<=end; d.setDate(d.getDate()+1)) {
-      db.all('SELECT * FROM '+table(d, s)+' WHERE time>=? AND time<=? AND point=? ORDER BY ASC', start, end, p, function(err, rows) {
-        if(!err) fromrows(rows, res);
+  // psvs = [[time, card]]
+  var getone = function(start, end, p, s, psvs) {
+    for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
+      db.all('SELECT * FROM '+table(d.getTime(), s)+' WHERE time>=? AND time<=? AND point=? ORDER BY ASC', start, end, p, function(err, rows) {
+        if(!err) fromrows(rows, psvs);
       });
     }
   };
 
 
   // put data (one point & state)
-  // req = [[time_millis, card]]
-  var putone = function(req, p, s) {
-    var rows = torows(req, p, []);
-    create(rows[0].time, rows[rows.length-1].time);
-    for(var i=0; i<rows.length; i++)
-      db.run('INSERT INTO '+table(rows[i].time, s)+'(time, point, card) VALUES, (?, ?, ?)', rows[i].time, rows[i].point, rows[i].card);
+  // psvs = [[time, card]]
+  var putone = function(psvs, p, s) {
+    create(psvs[0][0], psvs[psvs.length-1][0]);
+    for(var i=0; i<psvs.length; i++)
+      db.run('INSERT INTO '+table(psvs[i][0], s)+'(time, point, card) VALUES, (?, ?, ?)', psvs[i][0], p, psvs[i][1]);
   };
 
 
-  // add validate (one record)
+  // add validate (one row)
   var addvalidate = function(r, fn) {
     db.get('SELECT COUNT(*) FROM '+table(r.time, 'vld')+' WHERE card=?', r.card, function(err, row) {
       if(err || row['COUNT(*)'] < c.repeat) fn(true);
@@ -119,7 +111,7 @@ module.exports = function(c) {
 
 
   // put data
-  // pvs = {point:{state:[[time_millis, card]]}}
+  // pvs = {point:{state:[[time, card]]}}
   o.put = function(pvs, fn) {
     db.serialize(function() {
       for(var p in pvs) {

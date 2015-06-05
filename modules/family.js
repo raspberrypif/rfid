@@ -54,10 +54,20 @@ module.exports = function(c, config, storage) {
   };
 
 
+  // save data
+  o.data = function(time, card) {
+    storage.add(time, c.point, card);
+    c.points[c.point].synctime = time;
+  };
+
+
   // handle sync request
   // pvs = [name:{synctime}]
   o.sync = function(pvs, fn) {
-
+    var req = {}, now = new Date().getTime();
+    for(var p in pvs) {
+      req[p] = {'start': pvs[p].synctime, 'end': }
+    }
   };
 
 

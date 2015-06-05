@@ -67,8 +67,9 @@ module.exports = function(file) {
 
 
 
-  // load config now
+  // prepare
   o.loadnow();
+  setInterval(function() { o.save(); }, val.savegap);
 
   // ready!
   console.log('config ready!');
