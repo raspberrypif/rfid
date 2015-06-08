@@ -42,7 +42,7 @@ module.exports = function(c, config, storage) {
   // update sync time
   var updatesynctime = function(pds) {
     for(var p in pds)
-      if(!c.points[p] || (pds[p].synctime > c.points[p].synctime)) _.assign(c.points[p], pds[p]);
+      if(c.points[p] && (pds[p].synctime > c.points[p].synctime)) _.assign(c.points[p], pds[p]);
   };
 
 
@@ -108,7 +108,7 @@ module.exports = function(c, config, storage) {
 
 
   // make sync request
-  o.syncreq = function(p) {
+  o.syncreq = function(fn) {
     var req = JSON.stringify(_.pick(c.points, 'synctime'));
     _.assign(options, {
       'host': c.points[p].host,
@@ -119,8 +119,9 @@ module.exports = function(c, config, storage) {
     });
     http.request(options, function(res) {
       resbody(res, function(resb) {
-        var sres = JSON.parse(resb);
-
+        var obj = JSON.parse(resb);
+        updatesynctime(obj.status);
+        storage.put(obj.data, fn);
       });
     });
   };
