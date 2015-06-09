@@ -16,12 +16,13 @@ var c = cv.index;
 var reader = require('./modules/reader.js')(cv.reader);
 var storage = require('./modules/storage.js')(cv.storage);
 
+
 // init express
 var app = express();
 
 
 // handle form, json request
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({'extended': false}));
 app.use(bodyParser.json());
 
 

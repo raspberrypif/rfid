@@ -7,7 +7,6 @@
 // required modules
 var EventEmitter = require('events').EventEmitter;
 var sqlite3 = require('sqlite3').verbose();
-var _ = require('lodash');
 
 
 
