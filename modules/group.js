@@ -1,6 +1,6 @@
 // @wolfram77
-// FAMILY - maintains info sharing with multiple devices
-// e - card; () - green, beep, tellvld, tellinv, close
+// GROUP - maintains info sharing with multiple devices
+// () - green, beep, tellvld, tellinv, close
 
 
 // required modules

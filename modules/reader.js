@@ -6,6 +6,7 @@
 // required modules
 var EventEmitter = require('events').EventEmitter;
 var Gpio = require('onoff').Gpio;
+var _ = require('lodash');
 
 
 
@@ -31,28 +32,29 @@ module.exports = function(c) {
 
   // get card value
   var cardValue = function() {
-    if(cbits >= c.minbits) o.emit('card', cbits, card);
+    if(_.indexOf(c.card.types, cbits) < 0) o.tellerr();
+    else o.emit('card', cbits, card);
     card = cbits = 0;
   };
 
 
   // card read code
   setInterval(function() {
-    if(cbits > 0) setTimeout(cardValue, c.ctimeout);
-  }, c.ctimeout);
+    if(cbits > 0) setTimeout(cardValue, c.card.tread);
+  }, c.card.tgap);
 
 
 
   // handle card data0 low
   pdata0.watch(function(err, val) {
-    card <<= 1;
+    card = card*2;
     cbits += 1;
   });
 
 
   // handle card data1 low
   pdata1.watch(function(err, val) {
-    card = (card << 1) | 1;
+    card = card*2 + 1;
     cbits += 1;
   });
 
@@ -63,7 +65,7 @@ module.exports = function(c) {
     pgreen.writeSync(0);
     setTimeout(function() {
       pgreen.writeSync(1);
-    }, dur || c.greendur);
+    }, dur);
   };
 
 
@@ -72,24 +74,30 @@ module.exports = function(c) {
     pbeep.writeSync(0);
     setTimeout(function() {
       pbeep.writeSync(1);
-    }, dur || c.beepdur);
+    }, dur);
   };
 
 
   // tell valid
   o.tellvld = function() {
-    o.green(c.vlddur);
-    o.beep(c.vlddur);
+    o.green(c.res.tvld);
+    o.beep(c.res.tvld);
+  };
+
+
+  // tell err
+  o.tellerr = function() {
+    o.beep(c.res.terr);
   };
 
 
   // tell invalid
   o.tellinv = function() {
-    var t = c.invdur;
+    var t = c.res.tinv;
     var fn = function() {
-      o.beep(c.vlddur/2);
-      t -= c.vlddur;
-      if(t > 0) setTimeout(fn, c.vlddur);
+      o.beep(c.res.tvld/2);
+      t -= c.res.tvld;
+      if(t > 0) setTimeout(fn, c.res.tvld);
     };
     fn();
   };

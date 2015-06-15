@@ -73,6 +73,13 @@ app.all('/api/reader/tellvld', function(req, res) {
 });
 
 
+// reader.tellerr interface
+app.all('/api/reader/tellerr', function(req, res) {
+  reader.tellerr();
+  res.send('ok');
+});
+
+
 // reader.tellinv interface
 app.all('/api/reader/tellinv', function(req, res) {
   reader.tellinv();

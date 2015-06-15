@@ -15,12 +15,16 @@
     }
   },
   "reader": {
-    "vlddur": 250,
-    "invdur": 2000,
-    "greendur": 1000,
-    "beepdur": 2000,
-    "ctimeout": 100,
-    "minbits": 8
+    "card": {
+      "types": [26, 35],
+      "tread": 100,
+      "tgap": 100
+    },
+    "res": {
+      "tvld": 250,
+      "terr": 1000,
+      "tinv": 2000
+    }
   },
   "storage": {
     "file": "data/storage.db",
