@@ -1,6 +1,6 @@
 // @wolfram77
 // READER - controls wiegand rfid reader, and receives data from it
-// e - card; () - green, beep, tellvld, tellinv, close
+// e - card; () - green, beep, res, close
 
 
 // required modules
@@ -78,28 +78,27 @@ module.exports = function(c) {
   };
 
 
-  // tell valid
-  o.tellvld = function() {
-    o.green(c.res.tvld);
-    o.beep(c.res.tvld);
-  };
-
-
-  // tell err
-  o.tellerr = function() {
-    o.beep(c.res.terr);
-  };
-
-
-  // tell invalid
-  o.tellinv = function() {
-    var t = c.res.tinv;
-    var fn = function() {
-      o.beep(c.res.tvld/2);
-      t -= c.res.tvld;
-      if(t > 0) setTimeout(fn, c.res.tvld);
-    };
-    fn();
+  // response
+  o.res = function(res) {
+    var r = c.res;
+    switch(res) {
+      case 'vld':
+        o.green(r.tvld);
+        o.beep(r.tvld);
+        break;
+      case 'err':
+        o.beep(r.terr);
+        break;
+      case 'inv':
+        var t = r.tinv;
+        var fn = function() {
+          o.beep(r.tvld/2);
+          t -= r.tvld;
+          if(t > 0) setTimeout(fn, r.tvld);
+        };
+        fn();
+        break;
+    }
   };
 
 
