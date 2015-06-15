@@ -39,41 +39,79 @@ module.exports = function(c, config, storage) {
   };
 
 
-  // update sync time
-  var updatesynctime = function(pds) {
-    for(var p in pds)
-      if(c.points[p] && (pds[p].synctime > c.points[p].synctime)) _.assign(c.points[p], pds[p]);
+  // get request (for storage)
+  var getreq  = function() {
+    var req = {}, now = _.now();
+    for(var p in c.points)
+      req[p] = {'start': c.points[p].tsync+1, 'end': now};
+    return req;
   };
 
 
+  // update sync time
+  var updatetsync = function(pvs) {
+    for(var p in pvs) {
+      var vld = 0, inv = 0;
+      var len = pvs[p].vld.length;
+      if(len > 0) vld = pvs[p].vld[len-1][0];
+      var len = pvs[p].inv.length;
+      if(len > 0) inv = pvs[p].inv[len-1][0];
+      c.points[p].tsync = _.max([c.points[p].tsync || 0, vld, inv]);
+    }
+  };
+
+
+  // force sync (one point)
+  var syncone = function(p, fn) {
+    var sreqd = JSON.stringify(getreq());
+    var options = {
+      'method': 'GET',
+      'path': '/api/storage/get',
+      'host': c.points[p].host,
+      'port': c.points[p].port,
+      'headers': {
+        'Content-Type': 'application/json',
+        'Content-Length': sreqd.length
+      }
+    };
+    var req = http.request(options, function(res) {
+      resbody(res, function(sresd) {
+        var resd = JSON.parse(sresd);
+        updatetsync(resd);
+        storage.put(resd, function() {
+          if(fn) fn(true);
+        });
+      });
+    });
+    req.on('error', function(err) {
+      if(fn) fn(false, err);
+    });
+    req.write(sreqd);
+    req.end();
+  };
+
+
+
   // get names of points
-  // ps = [name]
-  o.getnames = function() {
-    var ps = [];
-    for(var p in c.points)
-      ps.push(p);
-    return ps;
+  // ret = [name]
+  o.names = function() {
+    return _.keys(c.points);
   };
 
 
   // get point details
-  // pds = {name:{host, port}}, ps = [name]
+  // ret = {name:{host, port}}, ps = [name]
   o.get = function(ps) {
-    var pds = [];
-    for(var i=0; i<ps.length; i++)
-      pds[ps[i]] = c.points[ps[i]];
-    return pds;
+    return _.pick(c.points, ps);
   };
 
 
   // set point details
   // pds = {name:{host, port}}
   o.set = function(pds) {
-    var now = new Date().getTime();
-    for(var p in pds) {
-      if(!c.points[p]) c.points[p] = _.assign({'synctime': now}, pds[p]);
-      else _.assign(c.points[p], pds[p]);
-    }
+    var now = _.now();
+    for(var p in pds)
+      _.assign(c.points[p] || {'tsync': now}, pds[p]);
     config.save();
   };
 
@@ -90,46 +128,28 @@ module.exports = function(c, config, storage) {
   // save data
   o.data = function(time, card) {
     storage.add(time, c.point, card);
-    c.synctime = time;
+    c.tsync = time;
   };
 
 
-  // make sync
-  // pds = {name:{synctime}}
-  o.sync = function(pds, fn) {
-    var req = {}, now = new Date().getTime();
-    for(var p in pds)
-      req[p] = {'start': pds[p].synctime+1, 'end': now};
-    storage.get(req, function(pvs) {
-      var res = {'status': _.pick(c.points, 'synctime'), 'data': pvs};
-      if(fn) fn(res);
-    });
-  };
-
-
-  // make sync request
-  o.syncreq = function(fn) {
-    var req = JSON.stringify(_.pick(c.points, 'synctime'));
-    _.assign(options, {
-      'host': c.points[p].host,
-      'port': c.points[p].port,
-      'headers': {
-        'Content-Length': data.length
-      }
-    });
-    http.request(options, function(res) {
-      resbody(res, function(resb) {
-        var obj = JSON.parse(resb);
-        updatesynctime(obj.status);
-        storage.put(obj.data, fn);
+  // sync data
+  o.sync = function(fn) {
+    var n = 0, nerr = 0;
+    var ps = _.keys(c.points);
+    var f = function(n) {
+      syncone(ps[n], function(ok, err) {
+        if(!ok) nerr++;
+        if(n >= 0) f(n--);
+        else if(fn) fn(nerr);
       });
-    });
+    };
+    f(ps.length-1);
   };
 
 
 
-  // prepare
-  o.syncreq();
+  // sync in background
+  
 
 
   // ready!

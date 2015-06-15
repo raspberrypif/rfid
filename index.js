@@ -51,8 +51,8 @@ app.all('/api/config/set', function(req, res) {
 // reader.green interface
 app.all('/api/reader/green', function(req, res) {
   var p = req.body;
-  if(p) reader.green(p.dur);
-  else reader.green();
+  if(!p) { res.send('err'); return; }
+  reader.green(p.dur);
   res.send('ok');
 });
 
@@ -60,29 +60,17 @@ app.all('/api/reader/green', function(req, res) {
 // reader.beep interface
 app.all('/api/reader/beep', function(req, res) {
   var p = req.body;
-  if(p) reader.beep(p.dur);
-  else reader.beep();
+  if(!p) { res.send('err'); return; }
+  reader.beep(p.dur);
   res.send('ok');
 });
 
 
-// reader.tellvld interface
-app.all('/api/reader/tellvld', function(req, res) {
-  reader.tellvld();
-  res.send('ok');
-});
-
-
-// reader.tellerr interface
-app.all('/api/reader/tellerr', function(req, res) {
-  reader.tellerr();
-  res.send('ok');
-});
-
-
-// reader.tellinv interface
-app.all('/api/reader/tellinv', function(req, res) {
-  reader.tellinv();
+// reader.res interface
+app.all('/api/reader/res', function(req, res) {
+  var p = req.body;
+  if(!p) { res.send('err'); return; }
+  reader.res(p.res);
   res.send('ok');
 });
 
