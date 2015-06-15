@@ -41,7 +41,7 @@ module.exports = function(c) {
   // card read code
   setInterval(function() {
     if(cbits > 0) setTimeout(cardValue, c.card.tread);
-  }, c.card.tgap);
+  }, c.card.gread);
 
 
 

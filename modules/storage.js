@@ -76,7 +76,7 @@ module.exports = function(c) {
   // add validate (one row)
   var addvalidate = function(r, fn) {
     db.get('SELECT COUNT(*) FROM '+table(r.time, 'vld')+' WHERE card=?', r.card, function(err, row) {
-      if(err || row['COUNT(*)'] < c.repeat) fn(true);
+      if(err || row['COUNT(*)'] < c.ndup) fn(true);
       else fn(false);
     });
   };

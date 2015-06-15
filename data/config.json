@@ -1,16 +1,20 @@
 {
   "index": {
-    "port": 80
+    "port": 80,
+    "trun": {
+      "start": "17:30:00",
+      "end": "19:30:00"
+    }
   },
-  "family": {
+  "group": {
     "point": "<name>",
-    "synctime": "",
+    "tsync": "",
     "points": {
       "<name2>": {
         "host": "192.168.1.1",
         "port": 80,
-        "synctime": "",
-        "syncgap": ""
+        "tsync": "",
+        "gsync": ""
       }
     }
   },
@@ -18,7 +22,7 @@
     "card": {
       "types": [26, 35],
       "tread": 100,
-      "tgap": 100
+      "gread": 100
     },
     "res": {
       "tvld": 250,
@@ -28,11 +32,7 @@
   },
   "storage": {
     "file": "data/storage.db",
-    "repeat": 1,
-    "time": {
-      "start": "17:30:00",
-      "end": "19:30:00"
-    }
+    "ndup": 1,
   },
-  "savegap": 5000
+  "gsave": 5000
 }
