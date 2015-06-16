@@ -15,14 +15,7 @@ module.exports = function(c, config, storage) {
   var o = new EventEmitter();
 
   // init
-  var options = {
-    'method': 'POST',
-    'path': '/api/family/sync'
-    'headers': {
-      'Content-Type': 'application/json',
-      'Content-Length': 0
-    }
-  };
+  var qsync = [], esync = [];
 
 
 
@@ -91,6 +84,38 @@ module.exports = function(c, config, storage) {
   };
 
 
+  // sync loop
+  // sel = do selectively
+  var syncloop = function(ps, es, sel, fn) {
+    while(true) {
+      if(ps.length === 0) {
+        if(fn) fn(es);
+        return;
+      }
+      p = ps.shift();
+      pv = c.points[p];
+      if(!sel || pv.tsync+pv.gsync > _.now()) break;
+    }
+    syncone(p, function(ok, err) {
+      if(!ok) es.push([p, err]);
+      process.nextTick(function() {
+        syncloop(ps, es);
+      });
+    });
+  };
+
+
+  // run sync in background
+  var syncrun = function() {
+    for(var p in c.points) {
+      setInterval(function() {
+        if(_.indexOf(qsync, p) < 0) qsync.push(p);
+        if(qsync.length === 1) syncloop(qsync, esync, true);
+      }, c.points[p].gsync);
+    }
+  };
+
+
 
   // get names of points
   // ret = [name]
@@ -134,22 +159,14 @@ module.exports = function(c, config, storage) {
 
   // sync data
   o.sync = function(fn) {
-    var n = 0, nerr = 0;
-    var ps = _.keys(c.points);
-    var f = function(n) {
-      syncone(ps[n], function(ok, err) {
-        if(!ok) nerr++;
-        if(n >= 0) f(n--);
-        else if(fn) fn(nerr);
-      });
-    };
-    f(ps.length-1);
+    var ps = _.keys(c.points), es = [];
+    syncloop(ps, es, false, fn);
   };
 
 
 
   // sync in background
-  
+
 
 
   // ready!
