@@ -6,6 +6,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
   <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/js/materialize.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.9.3/lodash.min.js"></script>
   <script src="http://code.highcharts.com/2.2.4/highcharts.js"></script>
@@ -16,14 +17,22 @@
 </head>
 
 
-<body>
+<body ng-app="app">
 
 <header>
 <div class="row">
-  <div class="col s12 m6 name"><a href="#"><h1><i class="fa fa-unlock-alt fa-lg"></i> pi-rfid</h1></a></div>
-  <div class="col s4 m2 center"><a href="#"><h1 is="sync"><i class="fa fa-refresh fa-lg"></i></h1></a></div>
-  <div class="col s4 m2 center"><a href="#"><h1 is="log"><i class="fa fa-file-text fa-lg"></i></h1></a></div>
-  <div class="col s4 m2 center"><a href="#"><h1 is="config"><i class="fa fa-cog fa-lg"></i></h1></a></div>
+  <div class="col s12 m6 name"><a href="#">
+    <h1><i class="fa fa-unlock-alt fa-lg"></i> pi-rfid</h1>
+  </a></div>
+  <div class="col s4 m2 center"><a href="#">
+    <h1 is="sync"><i class="fa fa-refresh fa-lg"></i></h1>
+  </a></div>
+  <div class="col s4 m2 center"><a href="#">
+    <h1 is="log"><i class="fa fa-file-text fa-lg"></i></h1>
+  </a></div>
+  <div class="col s4 m2 center"><a href="#">
+    <h1 is="config"><i class="fa fa-cog fa-lg"></i></h1>
+  </a></div>
 </div>
 </header>
 
@@ -33,10 +42,10 @@
 <div class="container">
   <input id="date" type="date" class="datepicker center-align">
 </div>
-<div class="row center-align">
-  <div class="input-field col s3">
-  <input id="points" type="checkbox">
-  <label for="points">Points</label>
+<div class="row center-align" ng-controller="listCtrl" ng-init="load('/api/group/points', {})">
+  <div class="input-field col s3" ng-repeat="p in value">
+  <input ng-attr-id="{{'point-'+p}}" type="checkbox">
+  <label ng-attr-for="{{'point-'+p}}">{{p}}</label>
   </div>
 </div>
 <div id="chart"></div>

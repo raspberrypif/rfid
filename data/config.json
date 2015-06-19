@@ -7,32 +7,27 @@
     }
   },
   "group": {
-    "point": "<name>",
-    "tsync": "",
-    "points": {
-      "<name2>": {
-        "host": "192.168.1.1",
-        "port": 80,
-        "tsync": "",
-        "gsync": ""
-      }
-    }
+    "point": "HTSK",
+    "tsync": 0,
+    "points": {}
   },
   "reader": {
     "card": {
       "types": [26, 35],
-      "tread": 100,
+      "dread": 100,
       "gread": 100
     },
-    "res": {
-      "tvld": 250,
-      "terr": 1000,
-      "tinv": 2000
+    "action": {
+      "dvld": 500,
+      "dinv": 1500,
+      "derr": 1000,
+      "dbeep": 200,
+      "dgreen": 200
     }
   },
   "storage": {
     "file": "data/storage.db",
-    "ndup": 1,
+    "ndup": 1
   },
   "gsave": 5000
 }

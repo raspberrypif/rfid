@@ -117,10 +117,18 @@ module.exports = function(c, config, storage) {
 
 
 
+  // get name of this
+  o.point = function() {
+    return c.point;
+  };
+
+
   // get names of points
   // ret = [name]
-  o.names = function() {
-    return _.keys(c.points);
+  o.points = function() {
+    var ps = _.keys(c.points);
+    ps.push(c.point);
+    return ps;
   };
 
 
@@ -150,9 +158,9 @@ module.exports = function(c, config, storage) {
   };
 
 
-  // save data
-  o.data = function(time, card) {
-    storage.add(time, c.point, card);
+  // save card data
+  o.card = function(time, card, fn) {
+    storage.add({'time': time, 'point': c.point, 'card': card}, fn);
     c.tsync = time;
   };
 
@@ -170,6 +178,6 @@ module.exports = function(c, config, storage) {
 
 
   // ready!
-  console.log('family ready!');
+  console.log('group ready!');
   return o;
 };

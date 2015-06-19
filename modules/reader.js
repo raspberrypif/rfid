@@ -1,6 +1,6 @@
 // @wolfram77
-// READER - controls wiegand rfid reader, and receives data from it
-// e - card; () - green, beep, res, close
+// READER - links to wiegand rfid reader
+// e - card; () - action, close
 
 
 // required modules
@@ -30,17 +30,33 @@ module.exports = function(c) {
   // var pcard = 8
 
 
+
   // get card value
-  var cardValue = function() {
-    if(_.indexOf(c.card.types, cbits) < 0) o.tellerr();
+  var cardval = function() {
+    if(_.indexOf(c.card.types, cbits) < 0) o.action('err');
     else o.emit('card', cbits, card);
     card = cbits = 0;
   };
 
 
+  // temporarily set a pin to low
+  var setlow = function(pin, dur) {
+    pin.writeSync(0);
+    setTimeout(function() { pin.writeSync(1); }, dur);
+  };
+
+
+  // toggle from hi-lo and lo-hi for a given duratiom
+  var togglelow = function(pin, dur, step) {
+    if(dur <= 0) return;
+    setlow(pin, step/2);
+    setTimeout(function() { togglelow(pin, dur-step, step); }, step/2);
+  };
+
+
   // card read code
   setInterval(function() {
-    if(cbits > 0) setTimeout(cardValue, c.card.tread);
+    if(cbits > 0) setTimeout(cardval, c.card.dread);
   }, c.card.gread);
 
 
@@ -48,55 +64,35 @@ module.exports = function(c) {
   // handle card data0 low
   pdata0.watch(function(err, val) {
     card = card*2;
-    cbits += 1;
+    cbits++;
   });
 
 
   // handle card data1 low
   pdata1.watch(function(err, val) {
     card = card*2 + 1;
-    cbits += 1;
+    cbits++;
   });
 
 
 
-  // handle green request
-  o.green = function(dur) {
-    pgreen.writeSync(0);
-    setTimeout(function() {
-      pgreen.writeSync(1);
-    }, dur);
-  };
-
-
-  // handle beep request
-  o.beep = function(dur) {
-    pbeep.writeSync(0);
-    setTimeout(function() {
-      pbeep.writeSync(1);
-    }, dur);
-  };
-
-
-  // response
-  o.res = function(res) {
+  // perform action
+  o.action = function(act, dur) {
     var r = c.res;
-    switch(res) {
+    switch(act) {
+      case 'green':
+        setlow(pgreen, dur || c.action.dgreen);
+        break;
+      case 'beep':
+        setlow(pbeep, dur || c.action.dbeep);
       case 'vld':
-        o.green(r.tvld);
-        o.beep(r.tvld);
+        setlow(pgreen, dur || c.action.dvld);
         break;
       case 'err':
-        o.beep(r.terr);
+        setlow(pbeep, dur || c.action.derr);
         break;
       case 'inv':
-        var t = r.tinv;
-        var fn = function() {
-          o.beep(r.tvld/2);
-          t -= r.tvld;
-          if(t > 0) setTimeout(fn, r.tvld);
-        };
-        fn();
+        togglelow(pbeep, dur || c.action.dinv, c.action.dbeep);
         break;
     }
   };

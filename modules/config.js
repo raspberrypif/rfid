@@ -33,7 +33,6 @@ module.exports = function(file) {
   // load config
   o.load = function(fn) {
     fs.readFile(file, function(err, data) {
-      if(err) throw err;
       _.assign(val, JSON.parse(data));
       if(fn) fn(val);
     });
@@ -43,7 +42,6 @@ module.exports = function(file) {
   // save config
   o.save = function(fn) {
     fs.writeFile(file, JSON.stringify(val), function(err) {
-      if(err) throw err;
       if(fn) fn();
     });
   };
@@ -69,7 +67,7 @@ module.exports = function(file) {
 
   // prepare
   o.loadnow();
-  setInterval(function() { o.save(); }, val.savegap);
+  setInterval(o.save, val.gsave);
 
   // ready!
   console.log('config ready!');

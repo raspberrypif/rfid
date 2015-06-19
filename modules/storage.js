@@ -127,11 +127,11 @@ module.exports = function(c) {
   // add data with check (one row)
   // r = {time, point, card}
   o.add = function(r, fn) {
+    create(r.time, r.time);
     addvalidate(r, function(valid) {
       var tab = table(r.time, valid? 'vld' : 'inv');
-      db.run('INSERT INTO '+tab+'(time, point, card) VALUES (?, ?, ?)', r.time, r.point, r.card, function() {
-        if(fn) fn(valid);
-      });
+      db.run('INSERT INTO '+tab+'(time, point, card) VALUES (?, ?, ?)', r.time, r.point, r.card);
+      if(fn) fn(valid);
     });
   };
 

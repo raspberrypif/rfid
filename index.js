@@ -4,6 +4,7 @@
 // required modules
 var express = require('express');
 var bodyParser = require('body-parser');
+var _ = require('lodash');
 
 
 
@@ -15,6 +16,7 @@ var c = cv.index;
 // init parts
 var reader = require('./modules/reader.js')(cv.reader);
 var storage = require('./modules/storage.js')(cv.storage);
+var group = require('./modules/group.js')(cv.group, config, storage);
 
 
 // init express
@@ -107,6 +109,63 @@ app.all('/api/storage/put', function(req, res) {
 
 
 
+// group.point interface
+app.all('/api/group/point', function(req, res) {
+  res.send({'point': group.point()});
+});
+
+
+// group.points interface
+app.all('/api/group/points', function(req, res) {
+  res.send(group.points());
+});
+
+
+// group.get interface
+app.all('/api/group/get', function(req, res) {
+  var p = req.body;
+  if(!p) { res.send('err'); return; }
+  res.send(group.get(p.ps));
+});
+
+
+// group.set interface
+app.all('/api/group/set', function(req, res) {
+  var p = req.body;
+  if(!p) { res.send('err'); return; }
+  group.set(p.pds);
+  res.send('ok');
+});
+
+
+// group.clear interface
+app.all('/api/group/clear', function(req, res) {
+  var p = req.body;
+  if(!p) { res.send('err'); return; }
+  group.clear(p.ps);
+  res.send('ok');
+});
+
+
+// group.card interface
+app.all('/api/group/card', function(req, res) {
+  var p = req.body;
+  if(!p) { res.send('err'); return; }
+  group.card(p.time, p.card, function(valid) {
+    res.send({'valid': valid});
+  });
+});
+
+
+// group.sync interface
+app.all('/api/group/sync', function(req, res) {
+  group.sync(function(es) {
+    res.send({'es': es});
+  });
+});
+
+
+
 // static directory
 app.use(express.static(__dirname+'/assets'));
 
@@ -129,9 +188,9 @@ var server = app.listen(c.port, function() {
 // handle card
 reader.on('card', function(cbits, card) {
   console.log('['+cbits+'] : '+card);
-  storage.add({'time': new Date(), 'point': 0, 'card': card}, function(valid) {
-    if(valid) { reader.tellvld(); console.log('valid'); }
-    else { reader.tellinv(); console.log('invalid!'); }
+  storage.add({'time': _.now(), 'point': 'A', 'card': card}, function(valid) {
+    if(valid) { reader.res('vld'); console.log('valid'); }
+    else { reader.res('inv'); console.log('invalid!'); }
   });
 });
 
