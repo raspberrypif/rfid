@@ -28,6 +28,15 @@ footer {
 }
 
 
+/* editor */
+.modal {
+  max-height: 90% !important;
+}
+.jsoneditor .search {
+  width: 50% !important;
+}
+
+
 /* chart */
 #chart {
   width: 100%;

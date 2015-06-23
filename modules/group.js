@@ -85,8 +85,9 @@ module.exports = function(c, config, storage) {
 
 
   // sync loop
-  // sel = do selectively
+  // ps = points, es = errors, sel = do selectively
   var syncloop = function(ps, es, sel, fn) {
+    var p = '';
     while(true) {
       if(ps.length === 0) {
         if(fn) fn(es);
@@ -99,7 +100,7 @@ module.exports = function(c, config, storage) {
     syncone(p, function(ok, err) {
       if(!ok) es.push([p, err]);
       process.nextTick(function() {
-        syncloop(ps, es);
+        syncloop(ps, es, sel, fn);
       });
     });
   };
@@ -107,6 +108,9 @@ module.exports = function(c, config, storage) {
 
   // run sync in background
   var syncrun = function() {
+    setInterval(function() {
+      esync.length = 0;
+    }, c.derr);
     for(var p in c.points) {
       setInterval(function() {
         if(_.indexOf(qsync, p) < 0) qsync.push(p);
@@ -123,7 +127,7 @@ module.exports = function(c, config, storage) {
   };
 
 
-  // get names of points
+  // get names of points (including self)
   // ret = [name]
   o.points = function() {
     var ps = _.keys(c.points);
@@ -144,7 +148,7 @@ module.exports = function(c, config, storage) {
   o.set = function(pds) {
     var now = _.now();
     for(var p in pds)
-      _.assign(c.points[p] || {'tsync': now}, pds[p]);
+      c.points[p] = _.assign(c.points[p] || {'tsync': 0}, pds[p]);
     config.save();
   };
 

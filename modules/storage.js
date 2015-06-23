@@ -57,7 +57,7 @@ module.exports = function(c) {
   // psvs = [[time, card]]
   var getone = function(start, end, p, s, psvs) {
     for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
-      db.all('SELECT * FROM '+table(d.getTime(), s)+' WHERE time>=? AND time<=? AND point=? ORDER BY ASC', start, end, p, function(err, rows) {
+      db.all('SELECT * FROM '+table(d.getTime(), s)+' WHERE time>=? AND time<=? AND point=? ORDER BY time ASC', start, end, p, function(err, rows) {
         if(!err) fromrows(rows, psvs);
       });
     }
@@ -127,11 +127,13 @@ module.exports = function(c) {
   // add data with check (one row)
   // r = {time, point, card}
   o.add = function(r, fn) {
-    create(r.time, r.time);
-    addvalidate(r, function(valid) {
-      var tab = table(r.time, valid? 'vld' : 'inv');
-      db.run('INSERT INTO '+tab+'(time, point, card) VALUES (?, ?, ?)', r.time, r.point, r.card);
-      if(fn) fn(valid);
+    db.serialize(function() {
+      create(r.time, r.time);
+      addvalidate(r, function(valid) {
+        var tab = table(r.time, valid? 'vld' : 'inv');
+        db.run('INSERT INTO '+tab+'(time, point, card) VALUES (?, ?, ?)', r.time, r.point, r.card);
+        if(fn) fn(valid);
+      });
     });
   };
 

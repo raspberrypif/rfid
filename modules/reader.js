@@ -50,7 +50,7 @@ module.exports = function(c) {
   var togglelow = function(pin, dur, step) {
     if(dur <= 0) return;
     setlow(pin, step/2);
-    setTimeout(function() { togglelow(pin, dur-step, step); }, step/2);
+    setTimeout(function() { togglelow(pin, dur-step, step); }, step);
   };
 
 

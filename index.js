@@ -1,4 +1,6 @@
 // @wolfram77
+// INDEX - main program
+// http - clear, get, put, add
 
 
 // required modules
@@ -14,7 +16,7 @@ var cv = config.get();
 var c = cv.index;
 
 // init parts
-var reader = require('./modules/reader.js')(cv.reader);
+if(c.dev) var reader = require('./modules/reader.js')(cv.reader);
 var storage = require('./modules/storage.js')(cv.storage);
 var group = require('./modules/group.js')(cv.group, config, storage);
 
@@ -24,7 +26,7 @@ var app = express();
 
 
 // handle form, json request
-app.use(bodyParser.urlencoded({'extended': false}));
+app.use(bodyParser.urlencoded({'extended': true}));
 app.use(bodyParser.json());
 
 
@@ -50,29 +52,12 @@ app.all('/api/config/set', function(req, res) {
 
 
 
-// reader.green interface
-app.all('/api/reader/green', function(req, res) {
-  var p = req.body;
-  if(!p) { res.send('err'); return; }
-  reader.green(p.dur);
-  res.send('ok');
-});
-
-
-// reader.beep interface
-app.all('/api/reader/beep', function(req, res) {
-  var p = req.body;
-  if(!p) { res.send('err'); return; }
-  reader.beep(p.dur);
-  res.send('ok');
-});
-
-
-// reader.res interface
-app.all('/api/reader/res', function(req, res) {
-  var p = req.body;
-  if(!p) { res.send('err'); return; }
-  reader.res(p.res);
+// reader.action interface
+app.all('/api/reader/action', function(req, res) {
+  var p = _.assign({}, req.body, req.query);
+  console.log(JSON.stringify(p));
+  if(!p.act) { res.send('err'); return; }
+  if(c.dev) reader.action(p.act, p.dur);
   res.send('ok');
 });
 
@@ -111,7 +96,7 @@ app.all('/api/storage/put', function(req, res) {
 
 // group.point interface
 app.all('/api/group/point', function(req, res) {
-  res.send({'point': group.point()});
+  res.json(group.point());
 });
 
 
@@ -186,11 +171,11 @@ var server = app.listen(c.port, function() {
 
 
 // handle card
-reader.on('card', function(cbits, card) {
+if(c.dev) reader.on('card', function(cbits, card) {
   console.log('['+cbits+'] : '+card);
-  storage.add({'time': _.now(), 'point': 'A', 'card': card}, function(valid) {
-    if(valid) { reader.res('vld'); console.log('valid'); }
-    else { reader.res('inv'); console.log('invalid!'); }
+  storage.add({'time': _.now(), 'point': cv.group.point, 'card': card}, function(valid) {
+    if(valid) { reader.action('vld'); console.log('valid'); }
+    else { reader.action('inv'); console.log('invalid!'); }
   });
 });
 
@@ -198,7 +183,7 @@ reader.on('card', function(cbits, card) {
 
 // cleanup
 process.on('SIGINT', function() {
-  server.close();
-  reader.close();
+  if(c.dev) reader.close();
   storage.close();
+  server.close();
 });

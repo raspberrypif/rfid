@@ -3,15 +3,20 @@
 
 // init
 var app = angular.module('app', []);
-var point = '';
-var chart = {};
+var dev = {
+  'point': '',
+  'used': [],
+  'data': {},
+  'date': null,
+  'chart': null,
+};
 
 
 
 // value controller
-app.controller('valueCtrl', ['$scope', function($scope) {
+app.controller('valCtrl', ['$scope', '$http', function($scope, $http) {
   var o = $scope;
-  o.value = 0;
+  o.value = {};
 
   // load value
   o.load = function(url, req) {
@@ -21,42 +26,19 @@ app.controller('valueCtrl', ['$scope', function($scope) {
   };
 
   // set value
-  o.set = function(val)   {
-    o.value = val;
+  o.set = function(i, v)   {
+    if(typeof v === 'undefined') o.value = i;
+    else o.value[i] = v;
   };
 
   // get value
-  o.get = function() {
-    return o.value;
+  o.get = function(i) {
+    return (typeof i === 'undefined')? o.value : o.value[i];
   };
 
   // is value?
-  o.is = function(val) {
-    return o.value === val;
-  };
-}]);
-
-
-// list controller
-app.controller('listCtrl', ['$scope', '$http', function($scope, $http) {
-  var o = $scope;
-  o.value = 0;
-
-  // load list
-  o.load = function(url, req) {
-    $http.post(url, req).success(function(data) {
-      o.value = data;
-    });
-  };
-
-  // set item
-  o.set = function(i, val) {
-    o.value[i] = val;
-  };
-
-  // get item
-  o.get = function(i) {
-    return o.value[i];
+  o.is = function(i, v) {
+    return (typeof v === 'undefined')? o.value === i : o.value[i] === v;
   };
 }]);
 
@@ -80,10 +62,33 @@ var idatepicker = function() {
 };
 
 
-// init point info
+// init modal
+var imodal = function() {
+  $('.modal-trigger').leanModal();
+};
+
+
+// init config
+var iconfig = function() {
+  var container = document.getElementById('config-json');
+  var options = {
+    mode: 'tree',
+    modes: ['code', 'form', 'text', 'tree', 'view'],
+    error: function (err) {
+      alert(err.toString());
+    }
+  };
+  var json = {};
+  var editor = new JSONEditor(container, options, json);
+};
+
+
+// init point
 var ipoint = function() {
-  $.getJSON('/api/group/point', {}, function(data) {
-    point = data.point;
+  $.get('/api/group/point', function(data) {
+    document.title = data;
+    $('#title').html(data);
+    dev.point = data;
   });
 };
 
@@ -109,9 +114,10 @@ var ichart = function() {
 
 
 // load chart data
-var chartload = function() {
-
+var chartdata = function(pvs, sel) {
+  
 };
+
 
 
 
@@ -119,8 +125,10 @@ var chartload = function() {
 $(document).ready(function() {
   itooltip();
   idatepicker();
+  imodal();
+  iconfig();
   ipoint();
-  ichart();
+  // ichart();
 });
 
 
