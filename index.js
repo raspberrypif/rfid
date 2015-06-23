@@ -167,6 +167,7 @@ app.use(function(req, res, next){
 // start server
 var server = app.listen(c.port, function() {
   console.log('ready!');
+  if(c.dev) reader.action('beep', 2000);
 });
 
 
