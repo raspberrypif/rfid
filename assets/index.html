@@ -22,12 +22,12 @@
 <body ng-app="app">
 
 <!-- config -->
-<div id="config" class="modal">
+<div id="config" class="modal" ng-controller="jsonCtrl" ng-init="init('config-json')">
   <div class="modal-content">
     <h4>Config</h4>
     <div class="row">
     <div class="input-field col s12">
-      <input id="config-url" type="text" value="/api/config/get">
+      <input id="config-url" type="text" ng-model="url" ng-init="url='/api/config/get'">
       <label for="config-url">URL</label>
     </div>
     </div>
@@ -35,7 +35,7 @@
   </div>
   <div class="modal-footer">
     <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Cancel</a>
-    <button class="modal-action waves-effect btn">Run</button>
+    <button class="modal-action waves-effect btn" ng-click="load(get())">Run</button>
   </div>
 </div>
 
@@ -60,19 +60,21 @@
 
 
 <main>
+<!-- date select -->
 <div class="container">
   <input id="date" type="date" class="datepicker center-align">
 </div>
-<div class="row center-align" ng-controller="valCtrl" ng-init="load('/api/group/points')">
+<!-- points select -->
+<div class="row center-align" ng-controller="valCtrl" ng-init="url='/api/group/points';load({});">
   <div class="input-field col s3" ng-repeat="p in value">
   <input ng-attr-id="{{'point-'+p}}" type="checkbox">
   <label ng-attr-for="{{'point-'+p}}">{{p}}</label>
   </div>
 </div>
+<!-- count display -->
 <div class="container">
-<div class="row">
-  <div class="col s6" id="n-vld"><h4 class="green-lighten-4">0</h4></div>
-  <div class="col s6" id="n-inv"><h4 class="red-lighten-5">0</h4></div>
+<div class="row" ng-controller="valCtrl" ng-init="url='/api/config/get';load({}, 2000);">
+  <div class="col s12"><h4 class="red-lighten-5">{{value.index.count}}</h4></div>
 </div>
 </div>
 <div id="chart"></div>

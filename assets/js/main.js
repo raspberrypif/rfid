@@ -3,7 +3,8 @@
 
 // init
 var app = angular.module('app', []);
-var dev = {
+var o = {
+  'editor': null,
   'point': '',
   'used': [],
   'data': {},
@@ -16,29 +17,75 @@ var dev = {
 // value controller
 app.controller('valCtrl', ['$scope', '$http', function($scope, $http) {
   var o = $scope;
-  o.value = {};
 
-  // load value
-  o.load = function(url, req) {
-    $http.post(url, req).success(function(data) {
-      o.value = data;
-    });
-  };
-
-  // set value
-  o.set = function(i, v)   {
-    if(typeof v === 'undefined') o.value = i;
-    else o.value[i] = v;
+  // set
+  o.set = function(v)   {
+    o.value = v;
   };
 
   // get value
-  o.get = function(i) {
-    return (typeof i === 'undefined')? o.value : o.value[i];
+  o.get = function() {
+    return o.value;
   };
 
-  // is value?
-  o.is = function(i, v) {
-    return (typeof v === 'undefined')? o.value === i : o.value[i] === v;
+  // is?
+  o.is = function(v) {
+    return o.value === v;
+  };
+
+  // load
+  o.load = function(req, gap) {
+    if(gap) setInterval(function() { o.load(req); }, gap);
+    else $http.post(o.url, req).success(function(res) {
+      o.set(res);
+    });
+  };
+
+  // save
+  o.save = function(gap) {
+    if(gap) setInterval(o.save, gap);
+    else $http.post(o.url, o.get());
+  };
+}]);
+
+
+// json controller
+app.controller('jsonCtrl', ['$scope', '$http', function($scope, $http) {
+  var o = $scope;
+
+  // init
+  o.init = function(id) {
+    var e = document.getElementById(id);
+    var options = {
+      mode: 'tree',
+      modes: ['code', 'form', 'text', 'tree', 'view'],
+      error: function (err) { alert(err.toString()); }
+    };
+    o.editor = new JSONEditor(e, options, {});
+  };
+
+  // set
+  o.set = function(v) {
+    o.editor.set(v);
+  };
+
+  // get
+  o.get = function() {
+    return o.editor.get();
+  };
+
+  // load
+  o.load = function(req, gap) {
+    if(gap) setInterval(function() { o.load(req); }, gap);
+    else $http.post(o.url, req).success(function(res) {
+      o.set(res);
+    });
+  };
+
+  // save
+  o.save = function(gap) {
+    if(gap) setInterval(o.save, gap);
+    else $http.post(o.url, o.get());
   };
 }]);
 
@@ -68,27 +115,12 @@ var imodal = function() {
 };
 
 
-// init config
-var iconfig = function() {
-  var container = document.getElementById('config-json');
-  var options = {
-    mode: 'tree',
-    modes: ['code', 'form', 'text', 'tree', 'view'],
-    error: function (err) {
-      alert(err.toString());
-    }
-  };
-  var json = {};
-  var editor = new JSONEditor(container, options, json);
-};
-
-
 // init point
 var ipoint = function() {
   $.get('/api/group/point', function(data) {
     document.title = data;
     $('#title').html(data);
-    dev.point = data;
+    o.point = data;
   });
 };
 
@@ -126,7 +158,6 @@ $(document).ready(function() {
   itooltip();
   idatepicker();
   imodal();
-  iconfig();
   ipoint();
   // ichart();
 });

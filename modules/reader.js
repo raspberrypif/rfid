@@ -33,7 +33,7 @@ module.exports = function(c) {
 
   // get card value
   var cardval = function() {
-    if(_.indexOf(c.card.types, cbits) < 0) o.action('err');
+    if(cbits < 8) o.action('err');
     else o.emit('card', cbits, card);
     card = cbits = 0;
   };

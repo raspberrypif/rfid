@@ -32,6 +32,9 @@ footer {
 .modal {
   max-height: 90% !important;
 }
+.jsoneditor td {
+  display: inline-block !important;
+}
 .jsoneditor .search {
   width: 50% !important;
 }

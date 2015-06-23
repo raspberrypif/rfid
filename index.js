@@ -46,7 +46,8 @@ app.all('/api/config/get', function(req, res) {
 app.all('/api/config/set', function(req, res) {
   var p = req.body;
   if(!p) { res.send('err'); return; }
-  config.set(p.val);
+  console.log(JSON.stringify(p));
+  config.set(p);
   res.send('ok');
 });
 
@@ -174,6 +175,7 @@ var server = app.listen(c.port, function() {
 if(c.dev) reader.on('card', function(cbits, card) {
   console.log('['+cbits+'] : '+card);
   storage.add({'time': _.now(), 'point': cv.group.point, 'card': card}, function(valid) {
+    c.count++;
     if(valid) { reader.action('vld'); console.log('valid'); }
     else { reader.action('inv'); console.log('invalid!'); }
   });
