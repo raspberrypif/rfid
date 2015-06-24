@@ -46,7 +46,6 @@ app.all('/api/config/get', function(req, res) {
 app.all('/api/config/set', function(req, res) {
   var p = req.body;
   if(!p) { res.send('err'); return; }
-  console.log(JSON.stringify(p));
   config.set(p);
   res.send('ok');
 });
@@ -56,7 +55,6 @@ app.all('/api/config/set', function(req, res) {
 // reader.action interface
 app.all('/api/reader/action', function(req, res) {
   var p = _.assign({}, req.body, req.query);
-  console.log(JSON.stringify(p));
   if(!p.act) { res.send('err'); return; }
   if(c.dev) reader.action(p.act, p.dur);
   res.send('ok');
@@ -78,8 +76,8 @@ app.all('/api/storage/clear', function(req, res) {
 app.all('/api/storage/get', function(req, res) {
   var p = req.body;
   if(!p) { res.send('err'); return; }
-  storage.get(p.req, function(res) {
-    res.send(res);
+  storage.get(p.req, function(pvs) {
+    res.send(pvs);
   });
 });
 
@@ -157,6 +155,7 @@ app.use(express.static(__dirname+'/assets'));
 
 // invalid request
 app.use(function(req, res, next){
+  console.log('BAD REQ: '+req.url);
   res.status(404);
   if(req.accepts('html')) res.sendFile(__dirname+'/assets/404.html');
   else res.send({'error': 'not found'});

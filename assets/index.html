@@ -22,7 +22,7 @@
 <body ng-app="app">
 
 <!-- config -->
-<div id="config" class="modal" ng-controller="jsonCtrl" ng-init="init('config-json')">
+<div id="config" class="modal bottom-sheet" ng-controller="jsonCtrl" ng-init="init('config-json')">
   <div class="modal-content">
     <h4>Config</h4>
     <div class="row">
@@ -34,7 +34,7 @@
     <div id="config-json" style="height: 20rem;"></div>
   </div>
   <div class="modal-footer">
-    <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Cancel</a>
+    <button class="modal-action modal-close waves-effect waves-green btn-flat">Cancel</a>
     <button class="modal-action waves-effect btn" ng-click="load(get())">Run</button>
   </div>
 </div>
@@ -59,14 +59,18 @@
 
 
 
-<main>
+<main ng-controller="chartCtrl" ng-init="init('chart');load(8000);">
 <!-- date select -->
 <div class="container">
-  <input id="date" type="date" class="datepicker center-align">
+  <div class="row">
+    <div class="input-field col s12">
+    <input type="text" class="datepicker center-align" ng-model="datestr" ng-change="refresh(datestr)">
+    </div>
+  </div>
 </div>
 <!-- points select -->
-<div class="row center-align" ng-controller="valCtrl" ng-init="url='/api/group/points';load({});">
-  <div class="input-field col s3" ng-repeat="p in value">
+<div class="row center-align">
+  <div class="input-field col s3" ng-repeat="(p,v) in points">
   <input ng-attr-id="{{'point-'+p}}" type="checkbox">
   <label ng-attr-for="{{'point-'+p}}">{{p}}</label>
   </div>

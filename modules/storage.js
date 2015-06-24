@@ -75,6 +75,7 @@ module.exports = function(c) {
 
   // add validate (one row)
   var addvalidate = function(r, fn) {
+    create(r.time, r.time);
     db.get('SELECT COUNT(*) FROM '+table(r.time, 'vld')+' WHERE card=?', r.card, function(err, row) {
       if(err || row['COUNT(*)'] < c.ndup) fn(true);
       else fn(false);
@@ -86,7 +87,7 @@ module.exports = function(c) {
   // clear data
   o.clear = function(start, end, fn) {
     db.serialize(function() {
-      delete(start, end);
+      clear(start, end);
       db.run('VACUUM', fn);
     });
   };
@@ -128,7 +129,6 @@ module.exports = function(c) {
   // r = {time, point, card}
   o.add = function(r, fn) {
     db.serialize(function() {
-      create(r.time, r.time);
       addvalidate(r, function(valid) {
         var tab = table(r.time, valid? 'vld' : 'inv');
         db.run('INSERT INTO '+tab+'(time, point, card) VALUES (?, ?, ?)', r.time, r.point, r.card);
