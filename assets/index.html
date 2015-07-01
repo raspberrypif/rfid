@@ -60,13 +60,15 @@
 
 
 <main ng-controller="chartCtrl" ng-init="init('chart');load(8000);">
+<!-- chart -->
+<div id="chart"></div>
 <!-- date select -->
 <div class="container">
-  <div class="row">
-    <div class="input-field col s12">
-    <input type="text" class="datepicker center-align" ng-model="datestr" ng-change="refresh(datestr)">
-    </div>
+<div class="row">
+  <div class="input-field col s12">
+  <input type="text" class="datepicker center-align" ng-model="datestr" ng-change="refresh(datestr)">
   </div>
+</div>
 </div>
 <!-- points select -->
 <div class="row center-align">
@@ -81,7 +83,6 @@
   <div class="col s12"><h4 class="red-lighten-5">{{value.index.count}}</h4></div>
 </div>
 </div>
-<div id="chart"></div>
 </main>
 
 

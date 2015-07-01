@@ -33,66 +33,61 @@ module.exports = function(c) {
 
   // get card value
   var cardval = function() {
-    if(cbits < 8) o.action('err');
-    else o.emit('card', cbits, card);
+    var status = _.indexOf(c.card.types, cbits)<0? 'e' : 'o';
+    if(cbits < c.card.mbits) o.action('err');
+    else o.emit('card', cbits, card, status);
+    console.log('[reader:cardval] ('+cbits+') '+card+' : '+status);
     card = cbits = 0;
   };
 
 
-  // temporarily set a pin to low
-  var setlow = function(pin, dur) {
-    pin.writeSync(0);
-    setTimeout(function() { pin.writeSync(1); }, dur);
-  };
-
-
-  // toggle from hi-lo and lo-hi for a given duratiom
-  var togglelow = function(pin, dur, step) {
-    if(dur <= 0) return;
-    setlow(pin, step/2);
-    setTimeout(function() { togglelow(pin, dur-step, step); }, step);
-  };
-
-
   // card read code
-  setInterval(function() {
-    if(cbits > 0) setTimeout(cardval, c.card.dread);
-  }, c.card.gread);
-
-
-
-  // handle card data0 low
-  pdata0.watch(function(err, val) {
-    card = card*2;
+  var cardread = function(val) {
+    if(cbits === 0) setTimeout(cardval, c.card.dread);
+    card = card*2 + val;
     cbits++;
-  });
+  };
 
 
-  // handle card data1 low
-  pdata1.watch(function(err, val) {
-    card = card*2 + 1;
-    cbits++;
-  });
+  // temporarily set a pin to a value
+  var setval = function(pin, val, dur) {
+    pin.writeSync(val);
+    if(dur) setTimeout(function() { pin.writeSync(1-val); }, dur);
+  };
+
+
+  // toggle a pin for a given duration
+  var toggleval = function(pin, val, dur, step) {
+    if(dur <= 0) return;
+    setval(pin, val, step/2);
+    setTimeout(function() { toggleval(pin, val, dur-step, step); }, step);
+  };
+
+
+
+  // handle data0 & data1
+  pdata0.watch(function() { cardread(0); });
+  pdata1.watch(function() { cardread(1); });
 
 
 
   // perform action
   o.action = function(act, dur) {
-    var r = c.res;
+    console.log('[reader.action] '+act+' ('+dur+')');
     switch(act) {
       case 'green':
-        setlow(pgreen, dur || c.action.dgreen);
+        setval(pgreen, 0, dur || c.action.dgreen);
         break;
       case 'beep':
-        setlow(pbeep, dur || c.action.dbeep);
-      case 'vld':
-        setlow(pgreen, dur || c.action.dvld);
+        setval(pbeep, 0, dur || c.action.dbeep);
+      case 'valid':
+        setval(pgreen, 0, dur || c.action.dvld);
         break;
-      case 'err':
-        setlow(pbeep, dur || c.action.derr);
+      case 'error':
+        setval(pbeep, 0, dur || c.action.derr);
         break;
-      case 'inv':
-        togglelow(pbeep, dur || c.action.dinv, c.action.dbeep);
+      case 'invalid':
+        toggleval(pbeep, 0, dur || c.action.dinv, c.action.dbeep);
         break;
     }
   };
@@ -104,6 +99,7 @@ module.exports = function(c) {
     pdata1.unexport();
     pgreen.unexport();
     pbeep.unexport();
+    console.log('[reader.close]');
   };
 
 

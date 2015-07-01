@@ -1,1 +1,1 @@
-@node index
+@cmd

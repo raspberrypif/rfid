@@ -1,12 +1,14 @@
 // @wolfram77
 // STORAGE - maintains info about card swipes
-// db - <date>_<state> (date = dd_mm_yyyy) (state = vld | inv) - time, point, card
+// db - dd_mm_yyyy - time, point, card, stat
 // () - clear, get, put, add
 
 
 // required modules
 var EventEmitter = require('events').EventEmitter;
 var sqlite3 = require('sqlite3').verbose();
+var _ = require('lodash');
+var z = require('./zed')();
 
 
 
@@ -19,105 +21,115 @@ module.exports = function(c) {
   var daymillis = 86400000;
 
 
-  // table name (time, state)
-  var table = function(t, s) {
+
+  // table name
+  var table = function(t) {
     var d = new Date(t);
-    return 'date_'+d.getDate()+'_'+(d.getMonth()+1)+'_'+d.getFullYear()+(s? '_'+s:'');
+    return 'date_'+d.getDate()+'_'+(d.getMonth()+1)+'_'+d.getFullYear();
   };
 
 
   // create tables
   var create = function(start, end) {
-    for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
-      db.run('CREATE TABLE IF NOT EXISTS '+table(d.getTime(), 'vld')+'(time INTEGER, point TEXT, card INTEGER)');
-      db.run('CREATE TABLE IF NOT EXISTS '+table(d.getTime(), 'inv')+'(time INTEGER, point TEXT, card INTEGER)');
-    }
+    console.log('[storage:create] '+new Date(start)+' -> '+new Date(end));
+    for(var d=start; d<=end; d+=daymillis)
+      db.run('CREATE TABLE IF NOT EXISTS '+table(d)+'(time INTEGER, card INTEGER, point TEXT, status TEXT)');
   };
 
 
-  // clear tables (drop)
+  // clear data
   var clear = function(start, end) {
-    for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
-      db.run('DROP TABLE IF EXISTS '+table(d.getTime(), 'vld'));
-      db.run('DROP TABLE IF EXISTS '+table(d.getTime(), 'inv'));
-    }
-  };
-
-
-  // convert from rows format
-  // psvs = [[time, card]]
-  var fromrows = function(rows, psvs) {
-    for(var i=0; i<rows.length; i++)
-      psvs.push([rows[i].time, rows[i].card]);
-    return psvs;
-  };
-
-
-  // get data (one point & state)
-  // psvs = [[time, card]]
-  var getone = function(start, end, p, s, psvs) {
-    for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
-      db.all('SELECT * FROM '+table(d.getTime(), s)+' WHERE time>=? AND time<=? AND point=? ORDER BY time ASC', start, end, p, function(err, rows) {
-        if(!err) fromrows(rows, psvs);
+    console.log('[storage:clear] '+new Date(start)+' -> '+new Date(end));
+    for(var d=start; d<=end; d+=daymillis) {
+      var tab = table(d);
+      db.run('DELETE FROM '+tab+' WHERE time>=? AND time<=?', start, end, function() {
+        db.get('SELECT COUNT(*) FROM '+tab, function(err, row) {
+          if(row['COUNT(*)'] === 0) db.run('DROP TABLE IF EXISTS '+tab);
+        });
       });
     }
   };
 
 
-  // put data (one point & state)
-  // psvs = [[time, card]]
-  var putone = function(psvs, p, s) {
-    create(psvs[0][0], psvs[psvs.length-1][0]);
-    for(var i=0; i<psvs.length; i++)
-      db.run('INSERT INTO '+table(psvs[i][0], s)+'(time, point, card) VALUES, (?, ?, ?)', psvs[i][0], p, psvs[i][1]);
+  // get data (a point)
+  // dst = {time: [], card: [], status: []}
+  var get = function(dst, start, end, p) {
+    // console.log('[storage:get]');
+    // console.log('[storage:get] '+new Date(start)+' -> '+new Date(end)+' . '+p);
+    for(var d=start; d<=end; d+=daymillis) {
+      db.all('SELECT * FROM '+table(d)+' WHERE time>=? AND time<=? AND point=? ORDER BY time ASC', start, end, p, function(err, rows) {
+        // console.log(rows);
+        if(!err) z.group(dst, rows, ['time', 'card', 'status']);
+      });
+    }
   };
 
 
-  // add validate (one row)
-  var addvalidate = function(r, fn) {
-    create(r.time, r.time);
-    db.get('SELECT COUNT(*) FROM '+table(r.time, 'vld')+' WHERE card=?', r.card, function(err, row) {
-      if(err || row['COUNT(*)'] < c.ndup) fn(true);
-      else fn(false);
+  // put data (a point)
+  // pvs = {time: [], card: [], status: []}
+  var put = function(pvs, p) {
+    console.log('[storage:put] . '+p);
+    create(pvs.time[0], _.last(pvs.time));
+    for(var i=0; i<pvs.time.length; i++)
+      db.run('INSERT INTO '+table(pvs.time[i])+'(time, card, point, status) VALUES, (?, ?, ?, ?)', pvs.time[i], pvs.card[i], p, pvs.status[i]);
+  };
+
+
+  // add (one row)
+  // r = {time, card, point, status}
+  var add = function(r, fn) {
+    var tab = table(r.time);
+    console.log('[storage:add] '+JSON.stringify(r));
+    db.get('SELECT COUNT(*) FROM '+tab+' WHERE card=?', r.card, function(err, row) {
+      r.status = r.status!=='e'? ( err || row['COUNT(*)']<c.ndup? 'v' : 'i' ) : 'e';
+      put({'time': [r.time], 'card': [r.card], 'status': [r.status]}, r.point);
+      if(fn) fn(o.status[r.status]);
     });
+  };
+
+
+
+  // status description
+  o.status = {
+    'e': 'error',
+    'v': 'valid',
+    'i': 'invalid'
   };
 
 
 
   // clear data
   o.clear = function(start, end, fn) {
+    console.log('[storage.clear]');
     db.serialize(function() {
-      clear(start, end);
+      clear(Math.max(start, c.start), end);
       db.run('VACUUM', fn);
     });
   };
 
 
   // get data
-  // req = {point:{start, end}}
-  o.get = function(req, fn) {
-    var pvs = {};
+  // rs = {point: {start, end}}
+  o.get = function(rs, fn) {
+    console.log('[storage.get]');
+    var vs = {};
     db.serialize(function() {
-      for(var p in req) {
-        pvs[p] = {'vld':[], 'inv':[]};
-        getone(req[p].start, req[p].end, p, 'vld', pvs[p].vld);
-        getone(req[p].start, req[p].end, p, 'inv', pvs[p].inv);
-      }
+      for(var p in rs)
+        get(vs[p] = vs[p] || {}, Math.max(rs[p].start, c.start), rs[p].end, p);
       db.run('PRAGMA no_op', function() {
-        if(fn) fn(pvs);
+        if(fn) fn(vs);
       });
     });
   };
 
 
   // put data
-  // pvs = {point:{state:[[time, card]]}}
-  o.put = function(pvs, fn) {
+  // vs = {point:{time: [], card: [], status: []}}
+  o.put = function(vs, fn) {
+    console.log('[storage.put]');
     db.serialize(function() {
-      for(var p in pvs) {
-        putone(pvs.vld, p, 'vld');
-        putone(pvs.inv, p, 'inv');
-      }
+      for(var p in vs)
+        put(vs[p], p);
       db.run('PRAGMA no_op', function() {
         if(fn) fn();
       });
@@ -126,15 +138,9 @@ module.exports = function(c) {
 
 
   // add data with check (one row)
-  // r = {time, point, card}
-  o.add = function(r, fn) {
-    db.serialize(function() {
-      addvalidate(r, function(valid) {
-        var tab = table(r.time, valid? 'vld' : 'inv');
-        db.run('INSERT INTO '+tab+'(time, point, card) VALUES (?, ?, ?)', r.time, r.point, r.card);
-        if(fn) fn(valid);
-      });
-    });
+  o.add = function(time, card, point, status, fn) {
+    console.log('[storage.add]');
+    add({'time': time, 'card': card, 'point': point, 'status': status}, fn);
   };
 
 
@@ -144,6 +150,7 @@ module.exports = function(c) {
 
 
   // ready!
+  if(c.start === 0) c.start = _.now();
   console.log('storage ready!');
   return o;
 };

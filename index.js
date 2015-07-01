@@ -11,14 +11,14 @@ var _ = require('lodash');
 
 
 // init config
-var config = require('./modules/config.js')('data/config.json');
+var config = require('./modules/config')('data/config.json');
 var cv = config.get();
 var c = cv.index;
 
 // init parts
-if(c.dev) var reader = require('./modules/reader.js')(cv.reader);
-var storage = require('./modules/storage.js')(cv.storage);
-var group = require('./modules/group.js')(cv.group, config, storage);
+if(c.dev) var reader = require('./modules/reader')(cv.reader);
+var storage = require('./modules/storage')(cv.storage);
+var group = require('./modules/group')(cv.group, storage);
 
 
 // init express
@@ -62,6 +62,12 @@ app.all('/api/reader/action', function(req, res) {
 
 
 
+// storage.status interface
+app.all('/api/storage/status', function(req, res) {
+  res.send(storage.status);
+});
+
+
 // storage.clear interface
 app.all('/api/storage/clear', function(req, res) {
   var p = req.body;
@@ -76,8 +82,8 @@ app.all('/api/storage/clear', function(req, res) {
 app.all('/api/storage/get', function(req, res) {
   var p = req.body;
   if(!p) { res.send('err'); return; }
-  storage.get(p.req, function(pvs) {
-    res.send(pvs);
+  storage.get(p.rs, function(vs) {
+    res.send(vs);
   });
 });
 
@@ -86,7 +92,7 @@ app.all('/api/storage/get', function(req, res) {
 app.all('/api/storage/put', function(req, res) {
   var p = req.body;
   if(!p) { res.send('err'); return; }
-  storage.put(p.req, function() {
+  storage.put(p.vs, function() {
     res.send('ok');
   });
 });
@@ -155,8 +161,8 @@ app.use(express.static(__dirname+'/assets'));
 
 // invalid request
 app.use(function(req, res, next){
-  console.log('BAD REQ: '+req.url);
   res.status(404);
+  console.log('BAD REQ: '+req.url);
   if(req.accepts('html')) res.sendFile(__dirname+'/assets/404.html');
   else res.send({'error': 'not found'});
 });
@@ -172,12 +178,12 @@ var server = app.listen(c.port, function() {
 
 
 // handle card
-if(c.dev) reader.on('card', function(cbits, card) {
-  console.log('['+cbits+'] : '+card);
-  storage.add({'time': _.now(), 'point': cv.group.point, 'card': card}, function(valid) {
+if(c.dev) reader.on('card', function(cbits, card, status) {
+  console.log('['+cbits+'] : '+card+' | '+status);
+  storage.add(_.now(), card, cv.group.point, status, function(status) {
     c.count++;
-    if(valid) { reader.action('vld'); console.log('valid'); }
-    else { reader.action('inv'); console.log('invalid!'); }
+    reader.action(status);
+    console.log(status);
   });
 });
 
@@ -188,4 +194,5 @@ process.on('SIGINT', function() {
   if(c.dev) reader.close();
   storage.close();
   server.close();
+  group.close();
 });
