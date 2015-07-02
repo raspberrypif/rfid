@@ -36,9 +36,9 @@ module.exports = function(file) {
 
   // load
   o.load = function(fn) {
+    console.log('[config.load]');
     fs.readFile(file, function(err, data) {
       _.assign(val, JSON.parse(data));
-      console.log('[config.load]');
       if(fn) fn(val);
     });
   };
@@ -46,8 +46,8 @@ module.exports = function(file) {
 
   // save
   o.save = function(fn) {
+    console.log('[config.save]');
     fs.writeFile(file, JSON.stringify(val), function(err) {
-      console.log('[config.save]');
       if(fn) fn();
     });
   };
@@ -55,23 +55,23 @@ module.exports = function(file) {
 
   // load (now)
   o.loadnow = function() {
-    _.assign(val, JSON.parse(fs.readFileSync(file)));
     console.log('[config.loadnow]');
+    _.assign(val, JSON.parse(fs.readFileSync(file)));
     return val;
   };
 
 
   // save (now)
   o.savenow = function() {
+    console.log('[config.savenow]');
     fs.writeFileSync(file, JSON.stringify(val));
-     console.log('[config.savenow]');
   };
 
 
   // close module
   o.close = function() {
-    o.savenow();
     console.log('[config.close]');
+    o.savenow();
   };
 
 

@@ -1,13 +1,13 @@
 // @wolfram77
 // GROUP - maintains info sharing with multiple devices
-// () - 
+// () - point, points, get, set, clear, sync
 
 
 // required modules
 var EventEmitter = require('events').EventEmitter;
 var http = require('http');
-var _ = require('lodash');
 var z = require('./zed')();
+var _ = require('lodash');
 
 
 
@@ -22,7 +22,7 @@ module.exports = function(c, storage) {
   // get request data for storage
   var reqd  = function() {
     var r = {}, now = _.now();
-    console.log('[group:reqd] '+new Date(now));
+    console.log('[group:reqd] '+now);
     for(var p in c.points)
       r[p] = {'start': c.points[p].tsync+1, 'end': now};
     return r;
@@ -39,7 +39,7 @@ module.exports = function(c, storage) {
 
   // request options
   var reqopt = function(p, len) {
-    console.log('[group:reqopt] . '+p+' ('+len+')');
+    console.log('[group:reqopt] .'+p+' ('+len+')');
     return {
       'method': 'GET',
       'path': '/api/storage/get',
@@ -55,11 +55,12 @@ module.exports = function(c, storage) {
 
   // sync (one point)
   var sync = function(p, fn) {
-    console.log('[group:sync] . '+p);
+    console.log('[group:sync] .'+p);
     var sreq = JSON.stringify(reqd());
     var options = reqopt(p, sreq.length);
     var req = http.request(options, function(res) {
       z.httpbody(res, function(sres) {
+        console.log('[group:sync] .'+p+' ok');
         var resd = JSON.parse(sres);
         updatetsync(resd);
         storage.put(resd, function() {
@@ -68,6 +69,7 @@ module.exports = function(c, storage) {
       });
     });
     req.on('error', function(err) {
+        console.log('[group:sync] .'+p+' err');
       if(fn) fn(false, err);
     });
     req.write(sreq);
@@ -77,12 +79,11 @@ module.exports = function(c, storage) {
 
   // get next point to sync
   var nextsync = function(ps, all) {
-    console.log('[group:nextsync] . ('+ps.length+')');
-    if(all && ps.length>0) return ps.shift();
+    console.log('[group:nextsync] .('+ps.length+')');
+    if(all) return ps[0];
     while(ps.length > 0) {
-      var p = ps.shift();
-      var v = c.points[p];
-      if(v.tsync+v.gsync > _.now()) return p;
+      var v = c.points[ps[0]];
+      if(v.tsync+v.gsync > _.now()) return ps[0];
     }
   };
 
@@ -97,6 +98,7 @@ module.exports = function(c, storage) {
       return;
     }
     sync(p, function(ok, err) {
+      ps.shift();
       if(!ok) es.push([p, err]);
       process.nextTick(function() {
         syncloop(ps, es, all, fn);
@@ -107,10 +109,12 @@ module.exports = function(c, storage) {
 
   // add point to sync list in intervals
   var syncadd = function(p) {
-    console.log('[group:syncadd] . '+p);
+    console.log('[group:syncadd] .'+p);
     setInterval(function() {
-      if(_.indexOf(qsync, p) < 0) qsync.push(p);
-      if(qsync.length === 1) syncloop(qsync, esync, true);
+      if(_.indexOf(qsync, p) < 0) {
+        qsync.push(p);
+        if(qsync.length === 1) syncloop(qsync, esync, true);
+      }
     }, c.points[p].gsync);
   };
 

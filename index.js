@@ -6,6 +6,7 @@
 // required modules
 var express = require('express');
 var bodyParser = require('body-parser');
+var z = require('./modules/zed')();
 var _ = require('lodash');
 
 
@@ -24,16 +25,17 @@ var group = require('./modules/group')(cv.group, storage);
 // init express
 var app = express();
 
-
 // handle form, json request
 app.use(bodyParser.urlencoded({'extended': true}));
 app.use(bodyParser.json());
+
 
 
 // index page
 app.all('/', function(req, res) {
   res.sendFile(__dirname+'/assets/index.html');
 });
+
 
 
 // config.get interface
@@ -44,36 +46,51 @@ app.all('/api/config/get', function(req, res) {
 
 // config.set interface
 app.all('/api/config/set', function(req, res) {
-  var p = req.body;
-  if(!p) { res.send('err'); return; }
+  var p = z.httpreq(req);
+  if(!p) { res.json('err'); return; }
   config.set(p);
-  res.send('ok');
+  res.json('ok');
 });
 
+
+// config.load interface
+app.all('/api/config/load', function(req, res) {
+  config.load(function(val) {
+    res.json(val);
+  });
+});
+
+
+// config.save interface
+app.all('/api/config/save', function(req, res) {
+  config.save(function() {
+    res.json('ok');
+  });
+});
 
 
 // reader.action interface
 app.all('/api/reader/action', function(req, res) {
-  var p = _.assign({}, req.body, req.query);
-  if(!p.act) { res.send('err'); return; }
+  var p = z.httpreq(req);
+  if(!p.act) { res.json('err'); return; }
   if(c.dev) reader.action(p.act, p.dur);
-  res.send('ok');
+  res.json('ok');
 });
 
 
 
 // storage.status interface
 app.all('/api/storage/status', function(req, res) {
-  res.send(storage.status);
+  res.json(storage.status);
 });
 
 
 // storage.clear interface
 app.all('/api/storage/clear', function(req, res) {
   var p = req.body;
-  if(!p) { res.send('err'); return; }
+  if(!p) { res.json('err'); return; }
   storage.clear(p.start, p.end, function() {
-    res.send('ok');
+    res.json('ok');
   });
 });
 
@@ -81,9 +98,9 @@ app.all('/api/storage/clear', function(req, res) {
 // storage.get interface
 app.all('/api/storage/get', function(req, res) {
   var p = req.body;
-  if(!p) { res.send('err'); return; }
-  storage.get(p.rs, function(vs) {
-    res.send(vs);
+  if(!p) { res.json('err'); return; }
+  storage.get(p, function(vs) {
+    res.json(vs);
   });
 });
 
@@ -91,9 +108,19 @@ app.all('/api/storage/get', function(req, res) {
 // storage.put interface
 app.all('/api/storage/put', function(req, res) {
   var p = req.body;
-  if(!p) { res.send('err'); return; }
-  storage.put(p.vs, function() {
-    res.send('ok');
+  if(!p) { res.json('err'); return; }
+  storage.put(p, function() {
+    res.json('ok');
+  });
+});
+
+
+// storage.add interface
+app.all('/api/storage/add', function(req, res) {
+  var p = req.body;
+  if(!p) { res.json('err'); return; }
+  storage.add(p, function(status) {
+    res.json(status);
   });
 });
 
@@ -107,50 +134,40 @@ app.all('/api/group/point', function(req, res) {
 
 // group.points interface
 app.all('/api/group/points', function(req, res) {
-  res.send(group.points());
+  res.json(group.points());
 });
 
 
 // group.get interface
 app.all('/api/group/get', function(req, res) {
   var p = req.body;
-  if(!p) { res.send('err'); return; }
-  res.send(group.get(p.ps));
+  if(!p) { res.json('err'); return; }
+  res.json(group.get(p));
 });
 
 
 // group.set interface
 app.all('/api/group/set', function(req, res) {
   var p = req.body;
-  if(!p) { res.send('err'); return; }
-  group.set(p.pds);
-  res.send('ok');
+  if(!p) { res.json('err'); return; }
+  group.set(p);
+  res.json('ok');
 });
 
 
 // group.clear interface
 app.all('/api/group/clear', function(req, res) {
   var p = req.body;
-  if(!p) { res.send('err'); return; }
-  group.clear(p.ps);
-  res.send('ok');
-});
-
-
-// group.card interface
-app.all('/api/group/card', function(req, res) {
-  var p = req.body;
-  if(!p) { res.send('err'); return; }
-  group.card(p.time, p.card, function(valid) {
-    res.send({'valid': valid});
-  });
+  if(!p) { res.json('err'); return; }
+  group.clear(p);
+  res.json('ok');
 });
 
 
 // group.sync interface
 app.all('/api/group/sync', function(req, res) {
   group.sync(function(es) {
-    res.send({'es': es});
+    res.json(es);
   });
 });
 
@@ -164,7 +181,7 @@ app.use(function(req, res, next){
   res.status(404);
   console.log('BAD REQ: '+req.url);
   if(req.accepts('html')) res.sendFile(__dirname+'/assets/404.html');
-  else res.send({'error': 'not found'});
+  else res.json('err');
 });
 
 
@@ -180,10 +197,9 @@ var server = app.listen(c.port, function() {
 // handle card
 if(c.dev) reader.on('card', function(cbits, card, status) {
   console.log('['+cbits+'] : '+card+' | '+status);
-  storage.add(_.now(), card, cv.group.point, status, function(status) {
-    c.count++;
+  storage.add({'time': _.now(), 'card': card, 'point': cv.group.point, 'status': status}, function(status) {
     reader.action(status);
-    console.log(status);
+    c.count++;
   });
 });
 

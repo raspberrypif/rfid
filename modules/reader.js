@@ -34,9 +34,9 @@ module.exports = function(c) {
   // get card value
   var cardval = function() {
     var status = _.indexOf(c.card.types, cbits)<0? 'e' : 'o';
+    console.log('[reader:cardval] ('+cbits+') '+card+' : '+status);
     if(cbits < c.card.mbits) o.action('err');
     else o.emit('card', cbits, card, status);
-    console.log('[reader:cardval] ('+cbits+') '+card+' : '+status);
     card = cbits = 0;
   };
 
@@ -95,11 +95,11 @@ module.exports = function(c) {
 
   // close module
   o.close = function() {
+    console.log('[reader.close]');
     pdata0.unexport();
     pdata1.unexport();
     pgreen.unexport();
     pbeep.unexport();
-    console.log('[reader.close]');
   };
 
 
