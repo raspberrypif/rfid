@@ -31,15 +31,16 @@ module.exports = function(c) {
   // create tables
   var create = function(start, end) {
     console.log('[storage:create] '+start+' -> '+end);
-    for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1))
+    for(var d=z.day(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
       db.run('CREATE TABLE IF NOT EXISTS '+table(d.getTime())+'(time INTEGER, card INTEGER, point TEXT, status TEXT)');
+    }
   };
 
 
   // clear data
   var clear = function(start, end) {
     console.log('[storage:clear] '+start+' -> '+end);
-    for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
+    for(var d=z.day(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
       var tab = table(d.getTime());
       db.run('DELETE FROM '+tab+' WHERE time>=? AND time<=?', start, end, function() {
         db.get('SELECT COUNT(*) FROM '+tab, function(err, row) {
@@ -54,7 +55,7 @@ module.exports = function(c) {
   // dst = {time: [], card: [], status: []}
   var get = function(dst, start, end, p) {
     console.log('[storage:get] '+start+' -> '+end+' .'+p);
-    for(var d=new Date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
+    for(var d=z.day(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
       console.log('[storage:get|for] '+d);
       db.all('SELECT * FROM '+table(d.getTime())+' WHERE time>=? AND time<=? AND point=? ORDER BY time ASC', start, end, p, function(err, rows) {
         if(!err) z.group(dst, rows, ['time', 'card', 'status']);
@@ -70,19 +71,6 @@ module.exports = function(c) {
     create(pvs.time[0], _.last(pvs.time));
     for(var i=0; i<pvs.time.length; i++)
       db.run('INSERT INTO '+table(pvs.time[i])+'(time, card, point, status) VALUES (?, ?, ?, ?)', pvs.time[i], pvs.card[i], p, pvs.status[i]);
-  };
-
-
-  // add (one row)
-  // pv = {time, card, point, status}
-  var add = function(pv, fn) {
-    var tab = table(pv.time);
-    console.log('[storage:add] '+JSON.stringify(pv));
-    db.get('SELECT COUNT(*) FROM '+tab+' WHERE card=?', pv.card, function(err, row) {
-      pv.status = pv.status!=='e'? ( err || row['COUNT(*)']<c.ndup? 'v' : 'i' ) : 'e';
-      put({'time': [pv.time], 'card': [pv.card], 'status': [pv.status]}, pv.point);
-      if(fn) fn(o.status[pv.status]);
-    });
   };
 
 
@@ -136,10 +124,17 @@ module.exports = function(c) {
 
 
   // add data with check (one row)
+  // pv = {time, card, point, status}
   o.add = function(pv, fn) {
-    console.log('[storage.add]');
     db.serialize(function() {
-      add(pv, fn);
+      create(pv.time, pv.time);
+      var tab = table(pv.time);
+      console.log('[storage.add] '+JSON.stringify(pv));
+      db.get('SELECT COUNT(*) FROM '+tab+' WHERE card=?', pv.card, function(err, row) {
+        pv.status = pv.status!=='e'? ( err || row['COUNT(*)']<c.ndup? 'v' : 'i' ) : 'e';
+        db.run('INSERT INTO '+tab+'(time, card, point, status) VALUES (?, ?, ?, ?)', pv.time, pv.card, pv.point, pv.status);
+        if(fn) fn(o.status[pv.status]);
+      });
     });
   };
 

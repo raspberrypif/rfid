@@ -40,6 +40,15 @@ module.exports = function() {
   };
 
 
+  // get day from datetime or millis
+  o.day = function(d) {
+    var t = (d && typeof d !== 'number')? d.getTime() : d;
+    var day = new Date(t);
+    day.setHours(0, 0, 0, 0);
+    return day;
+  };
+
+
   // get http request data
   o.httpreq = function(req) {
     return _.assign({}, req.body, req.query);
