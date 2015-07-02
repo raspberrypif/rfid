@@ -23,7 +23,7 @@ module.exports = function(c) {
 
   // table name
   var table = function(t) {
-    var d = new Date(t);
+    var d = (typeof t === 'number')? new Date(t) : t;
     return 'date_'+d.getDate()+'_'+(d.getMonth()+1)+'_'+d.getFullYear();
   };
 
@@ -31,23 +31,35 @@ module.exports = function(c) {
   // create tables
   var create = function(start, end) {
     console.log('[storage:create] '+start+' -> '+end);
-    for(var d=z.day(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
-      db.run('CREATE TABLE IF NOT EXISTS '+table(d.getTime())+'(time INTEGER, card INTEGER, point TEXT, status TEXT)');
-    }
+    for(var d=z.date(start); d<=new Date(end); d.setDate(d.getDate()+1))
+      db.run('CREATE TABLE IF NOT EXISTS '+table(d)+'(point TEXT NOT NULL, time INTEGER NOT NULL, card INTEGER NOT NULL, status TEXT NOT NULL, PRIMARY KEY(point, time)) WITHOUT ROWID');
   };
 
 
   // clear data
   var clear = function(start, end) {
     console.log('[storage:clear] '+start+' -> '+end);
-    for(var d=z.day(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
-      var tab = table(d.getTime());
+    for(var d=z.date(start); d<=new Date(end); d.setDate(d.getDate()+1)) {
+      var tab = table(d);
       db.run('DELETE FROM '+tab+' WHERE time>=? AND time<=?', start, end, function() {
         db.get('SELECT COUNT(*) FROM '+tab, function(err, row) {
           if(row['COUNT(*)'] === 0) db.run('DROP TABLE IF EXISTS '+tab);
         });
       });
     }
+  };
+
+
+  // get data counts (a point)
+  var count = function(start, end, p, fn) {
+    dst = {'e': 0, 'v': 0, 'i': 0};
+    console.log('[storage:count] '+start+' -> '+end+' .'+p);
+    for(var d=z.date(start); d<=new Date(end); d.setDate(d.getDate()+1))
+      db.all('SELECT status, COUNT(*) FROM '+table(d)+' WHERE point=? GROUP BY status', function(err, rows) {
+        for(var i=0; i<rows.length; i++) {
+          dst[rows[i]['status']] += rows[i]['COUNT(*)'];
+        }
+      });
   };
 
 

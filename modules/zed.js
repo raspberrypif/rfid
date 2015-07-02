@@ -1,6 +1,6 @@
 // @wolfram77
 // ZED - general purpose functions
-// () - push, group, async, httpreq, httpbody
+// () - push, group, async, date, httpreq, httpbody
 
 
 // required modules
@@ -40,8 +40,8 @@ module.exports = function() {
   };
 
 
-  // get day from datetime or millis
-  o.day = function(d) {
+  // get date from datetime or millis
+  o.date = function(d) {
     var t = (d && typeof d !== 'number')? d.getTime() : d;
     var day = new Date(t);
     day.setHours(0, 0, 0, 0);

@@ -1,7 +1,7 @@
 // @wolfram77
-// CONFIG - maintains config for all other modules
+// CONFIG - maintains config for all modules
 // () - get, set, load, save, loadnow, savenow, close
-// .. - t = time, d = duration, g = gap, dev = device
+// .. - t = time, d = duration, g = gap, n = number, m = min, dev = device
 
 
 // required modules
