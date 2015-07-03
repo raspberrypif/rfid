@@ -12,6 +12,12 @@
 		"tsync": 0,
 		"derr": 10000,
 		"points": {
+			"HTHN": {
+				"host": "192.168.1.51",
+				"port": 80,
+				"tsync": 0,
+				"gsync": 10000
+			}
 		}
 	},
 	"reader": {
