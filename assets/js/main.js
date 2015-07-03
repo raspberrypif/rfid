@@ -169,7 +169,7 @@ app.controller('jsonCtrl', ['$scope', '$http', function($scope, $http) {
 }]);
 
 
-
+/*
 // chart controller
 app.controller('chartCtrl', ['$scope', '$http', function($scope, $http) {
   var o = $scope; // (sel)
@@ -281,3 +281,4 @@ app.controller('chartCtrl', ['$scope', '$http', function($scope, $http) {
     });
   };
 }]);
+*/

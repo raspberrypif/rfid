@@ -16,13 +16,13 @@ module.exports = function(c, storage) {
   var o = new EventEmitter();
 
   // init
-  var qsync = [], esync = [];
+  var psync = [], esync = [];
 
 
   // get request data for storage
   var reqd  = function() {
     var r = {}, now = _.now();
-    console.log('[group:reqd] '+now);
+    console.log('[group:reqd] t'+now);
     for(var p in c.points)
       r[p] = {'start': c.points[p].tsync+1, 'end': now};
     return r;
@@ -33,7 +33,7 @@ module.exports = function(c, storage) {
   var updatetsync = function(vs) {
     console.log('[group:updatetsync]');
     for(var p in vs)
-      if(vs[p].time.length > 0) c.points[p].tsync = _.last(vs[p].time);
+      if(vs[p].time && vs[p].time.length>0) c.points[p].tsync = _.last(vs[p].time);
   };
 
 
@@ -69,7 +69,7 @@ module.exports = function(c, storage) {
       });
     });
     req.on('error', function(err) {
-        console.log('[group:sync] .'+p+' err');
+      console.log('[group:sync] .'+p+' err');
       if(fn) fn(false, err);
     });
     req.write(sreq);
@@ -83,7 +83,8 @@ module.exports = function(c, storage) {
     if(all) return ps[0];
     while(ps.length > 0) {
       var v = c.points[ps[0]];
-      if(v.tsync+v.gsync > _.now()) return ps[0];
+      if(v.tsync+v.gsync < _.now()) return ps[0];
+      ps.shift();
     }
   };
 
@@ -111,9 +112,9 @@ module.exports = function(c, storage) {
   var syncadd = function(p) {
     console.log('[group:syncadd] .'+p);
     setInterval(function() {
-      if(_.indexOf(qsync, p) < 0) {
-        qsync.push(p);
-        if(qsync.length === 1) syncloop(qsync, esync, true);
+      if(_.indexOf(psync, p) < 0) {
+        psync.push(p);
+        if(psync.length === 1) syncloop(psync, esync, false);
       }
     }, c.points[p].gsync);
   };
@@ -179,7 +180,7 @@ module.exports = function(c, storage) {
   o.sync = function(fn) {
     console.log('[group.sync]');
     var ps = _.keys(c.points), es = [];
-    syncloop(ps, es, false, fn);
+    syncloop(ps, es, true, fn);
   };
 
 

@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="/css/materialize.min.css">
   <link rel="stylesheet" href="/css/font-awesome.min.css">
   <link rel="stylesheet" href="/mod/jsoneditor/jsoneditor.min.css">
@@ -59,28 +60,42 @@
 
 
 
-<main ng-controller="chartCtrl" ng-init="init('chart');load(8000);">
+<main>
 <!-- chart -->
 <div id="chart"></div>
 <!-- date select -->
 <div class="container">
 <div class="row">
   <div class="input-field col s12">
-  <input type="text" class="datepicker center-align" ng-model="datestr" ng-change="refresh(datestr)">
+    <input type="text" class="datepicker center-align">
+  </div>
+</div>
+<div class="row">
+  <div class="input-field col s4 m2">
+    <input id="status-error" type="checkbox">
+    <label for="status-error">error</label>
+  </div>
+  <div class="input-field col s4 m2">
+    <input id="status-valid" type="checkbox">
+    <label for="status-valid">valid</label>
+  </div>
+  <div class="input-field col s4 m2">
+    <input id="status-invalid" type="checkbox">
+    <label for="status-invalid">invalid</label>
   </div>
 </div>
 </div>
 <!-- points select -->
-<div class="row center-align">
-  <div class="input-field col s3" ng-repeat="(p,v) in points">
+<div class="row center-align" ng-controller="valCtrl" ng-init="url='/api/group/points';load({});">
+  <div class="input-field col s4 m2" ng-repeat="p in value">
   <input ng-attr-id="{{'point-'+p}}" type="checkbox">
   <label ng-attr-for="{{'point-'+p}}">{{p}}</label>
   </div>
 </div>
 <!-- count display -->
 <div class="container">
-<div class="row" ng-controller="valCtrl" ng-init="url='/api/config/get';load({}, 2000);">
-  <div class="col s12"><h4 class="red-lighten-5">{{value.index.count}}</h4></div>
+<div class="row">
+  <div class="col s12"><h4 class="red-lighten-5"></h4></div>
 </div>
 </div>
 </main>
