@@ -1,19 +1,16 @@
 {
 	"index": {
 		"port": 80,
-		"dev": true,
-		"trun": {
-			"start": "17:30:00",
-			"end": "19:30:00"
-		}
+		"dev": false,
+		"db": "data/data.db"
 	},
 	"group": {
-		"point": "HTSK",
+		"point": "COMP",
 		"tsync": 0,
 		"derr": 10000,
 		"points": {
-			"HTHN": {
-				"host": "192.168.1.51",
+			"HTSK": {
+				"host": "192.168.1.101",
 				"port": 80,
 				"tsync": 0,
 				"gsync": 10000
@@ -27,16 +24,18 @@
 			"mbits": 8
 		},
 		"action": {
-			"dvld": 500,
+			"dvld": 400,
 			"dinv": 1000,
-			"derr": 800,
+			"derr": 400,
 			"dbeep": 200,
 			"dgreen": 200
+		},
+		"trun": {
+			"start": "17:30:00",
+			"end": "19:30:00"
 		}
 	},
-	"storage": {
-		"file": "data/storage.db",
-		"start": 1435000000000,
+	"tap": {
 		"ndup": 1
 	},
 	"gsave": 30000
