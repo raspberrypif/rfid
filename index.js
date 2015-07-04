@@ -1,33 +1,31 @@
 // @wolfram77
 // INDEX - main program
-// http - clear, get, put, add
+// http - /, /api/*
 
 
 // required modules
 var express = require('express');
 var bodyParser = require('body-parser');
-var z = require('./modules/zed')();
+var sqlite3 = require('sqlite3').verbose();
 var _ = require('lodash');
 
 
 
-// init config
+// load config
 var config = require('./modules/config')('data/config.json');
 var cv = config.get();
 var c = cv.index;
 
-// init parts
-if(c.dev) var reader = require('./modules/reader')(cv.reader);
-var storage = require('./modules/storage')(cv.storage);
-var group = require('./modules/group')(cv.group, storage);
-
-
-// init express
+// init express, database
 var app = express();
-
-// handle form, json request
 app.use(bodyParser.urlencoded({'extended': true}));
 app.use(bodyParser.json());
+var db = new sqlite3.Database(c.file);
+
+// load parts
+if(c.dev) var reader = require('./modules/reader')(cv.reader);
+var group = require('./modules/group')(cv.group, storage);
+var z = require('./modules/zed')();
 
 
 
@@ -43,7 +41,6 @@ app.all('/api/config/get', function(req, res) {
   res.json(config.get());
 });
 
-
 // config.set interface
 app.all('/api/config/set', function(req, res) {
   var p = z.httpreq(req);
@@ -52,7 +49,6 @@ app.all('/api/config/set', function(req, res) {
   res.json('ok');
 });
 
-
 // config.load interface
 app.all('/api/config/load', function(req, res) {
   config.load(function(val) {
@@ -60,13 +56,13 @@ app.all('/api/config/load', function(req, res) {
   });
 });
 
-
 // config.save interface
 app.all('/api/config/save', function(req, res) {
   config.save(function() {
     res.json('ok');
   });
 });
+
 
 
 // reader.action interface
@@ -84,7 +80,6 @@ app.all('/api/storage/status', function(req, res) {
   res.json(storage.status);
 });
 
-
 // storage.clear interface
 app.all('/api/storage/clear', function(req, res) {
   var p = req.body;
@@ -93,7 +88,6 @@ app.all('/api/storage/clear', function(req, res) {
     res.json('ok');
   });
 });
-
 
 // storage.get interface
 app.all('/api/storage/get', function(req, res) {
@@ -104,7 +98,6 @@ app.all('/api/storage/get', function(req, res) {
   });
 });
 
-
 // storage.put interface
 app.all('/api/storage/put', function(req, res) {
   var p = req.body;
@@ -113,7 +106,6 @@ app.all('/api/storage/put', function(req, res) {
     res.json('ok');
   });
 });
-
 
 // storage.add interface
 app.all('/api/storage/add', function(req, res) {
@@ -131,12 +123,10 @@ app.all('/api/group/point', function(req, res) {
   res.json(group.point());
 });
 
-
 // group.points interface
 app.all('/api/group/points', function(req, res) {
   res.json(group.points());
 });
-
 
 // group.get interface
 app.all('/api/group/get', function(req, res) {
@@ -144,7 +134,6 @@ app.all('/api/group/get', function(req, res) {
   if(!p) { res.json('err'); return; }
   res.json(group.get(p));
 });
-
 
 // group.set interface
 app.all('/api/group/set', function(req, res) {
@@ -154,7 +143,6 @@ app.all('/api/group/set', function(req, res) {
   res.json('ok');
 });
 
-
 // group.clear interface
 app.all('/api/group/clear', function(req, res) {
   var p = req.body;
@@ -162,7 +150,6 @@ app.all('/api/group/clear', function(req, res) {
   group.clear(p);
   res.json('ok');
 });
-
 
 // group.sync interface
 app.all('/api/group/sync', function(req, res) {
