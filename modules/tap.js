@@ -1,7 +1,7 @@
 // @wolfram77
 // TAP - maintains info about card taps
 // db - tap : time, point, card, status
-// () - clear, count, get, put, add
+// () - statusinfo, clear, count, get, put, add
 
 
 // required modules
@@ -19,8 +19,8 @@ module.exports = function(c, db) {
   var daymillis = 86400000;
 
 
-  // status description
-  var statusdesc = {
+  // status info
+  var statusinfo = {
     'e': 'error',
     'v': 'valid',
     'i': 'invalid'
@@ -32,7 +32,7 @@ module.exports = function(c, db) {
   // dst = {e, v, i}
   var count = function(dst, p, start, end) {
     console.log('[tap:count] .'+p+' '+start+' -> '+end);
-    db.all('SELECT status, COUNT(*) FROM tap WHERE point=? AND time>=? AND time<=? GROUP BY status', p, start, end, function(err, rows) {
+    db.all('SELECT status, COUNT(*) FROM tap WHERE point=? AND time>=? AND time<? GROUP BY status', p, start, end, function(err, rows) {
       for(var i=0; i<rows.length; i++)
         dst[rows[i].status] = rows[i]['COUNT(*)'];
     });
@@ -43,7 +43,7 @@ module.exports = function(c, db) {
   // dst = {time: [], card: [], status: []}
   var get = function(dst, p, start, end) {
     console.log('[tap:get] .'+p+' '+start+' -> '+end);
-    db.all('SELECT  * FROM tap WHERE point=? AND time>=? AND time<=? ORDER BY time ASC', p, start, end, function(err, rows) {
+    db.all('SELECT  * FROM tap WHERE point=? AND time>=? AND time<? ORDER BY time ASC', p, start, end, function(err, rows) {
       z.group(dst, rows, ['time', 'card', 'status']);
     });
   };
@@ -59,17 +59,17 @@ module.exports = function(c, db) {
 
 
 
-  // status description
-  o.statusdesc = function() {
-    console.log('[tap.statusdesc]');
-    return status;
+  // status info
+  o.statusinfo = function() {
+    console.log('[tap.statusinfo]');
+    return statusinfo;
   };
 
 
   // clear tap info
   o.clear = function(start, end, fn) {
     console.log('[tap.clear]');
-    db.run('DELETE FROM tap WHERE time>=? AND time<=?', start, end, fn);
+    db.run('DELETE FROM tap WHERE time>=? AND time<?', start, end, fn);
   };
 
 
@@ -125,10 +125,10 @@ module.exports = function(c, db) {
     console.log('[tap.add] .'+point+' t'+time+' '+card+' :'+status);
     db.serialize(function() {
       var start = z.date(time).getTime(), end = start+daymillis;
-      db.get('SELECT COUNT(*) FROM tap WHERE time>=? AND time<=? AND card=?', start, end, card, function(err, row) {
+      db.get('SELECT COUNT(*) FROM tap WHERE time>=? AND time<? AND card=?', start, end, card, function(err, row) {
         status = status!=='e'? ( err || row['COUNT(*)']<c.ndup? 'v' : 'i' ) : 'e';
         db.run('INSERT INTO tap(point, time, card, status) VALUES (?, ?, ?, ?)', point, time, card, status);
-        if(fn) fn(statusdesc[status]);
+        if(fn) fn(statusinfo[status]);
       });
     });
   };
@@ -137,6 +137,7 @@ module.exports = function(c, db) {
 
   // prepare
   db.run('CREATE TABLE IF NOT EXISTS tap(point TEXT NOT NULL, time INTEGER NOT NULL, card INTEGER NOT NULL, status TEXT NOT NULL, PRIMARY KEY(point, time)) WITHOUT ROWID');
+  o.clear(0, _.now()-c.dkeep);
 
   // ready!
   console.log('[tap] ready!');
