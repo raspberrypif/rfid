@@ -29,6 +29,12 @@ module.exports = function(c) {
   };
 
 
+  // initialize
+  var init = function() {
+    db.run('CREATE TABLE IF NOT EXISTS card(start INTEGER NOT NULL, end INTEGER NOT NULL, ndup INTEGER NOT NULL, PRIMARY KEY(start, end)) WITHOUT ROWID');
+    db.run('CREATE TABLE IF NOT EXISTS tap(time INTEGER NOT NULL, point TEXT NOT NULL, card INTEGER NOT NULL, status TEXT NOT NULL, PRIMARY KEY(time, point)) WITHOUT ROWID');
+  };
+
 
   // table name
   var table = function(t) {
