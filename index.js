@@ -195,7 +195,7 @@ if(c.dev) reader.on('card', function(cbits, card, status) {
 // cleanup
 process.on('SIGINT', function() {
   if(c.dev) reader.close();
-  storage.close();
   server.close();
   group.close();
+  db.close();
 });
