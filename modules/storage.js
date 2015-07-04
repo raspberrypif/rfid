@@ -1,7 +1,7 @@
 // @wolfram77
 // STORAGE - maintains info about card swipes
-// db - dd_mm_yyyy - time, point, card, status
-// () - clear, get, put, add
+// db - dd_mm_yyyy - point, time, card, status
+// () - clear, count, get, put, add
 
 
 // required modules

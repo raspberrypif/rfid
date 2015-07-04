@@ -17,14 +17,14 @@ module.exports = function() {
   // push items from source array
   o.push = function(dst, src) {
     Array.prototype.push.apply(dst, src);
+    return dst;
   };
 
 
   // group properties as array
   o.group = function(dst, src, ps) {
     _.forEach(ps, function(p) {
-      if(!dst[p]) dst[p] = [];
-      o.push(dst[p], _.pluck(src, p));
+      o.push(dst[p] = dst[p] || [], _.pluck(src, p));
     });
     return dst;
   };
@@ -43,9 +43,9 @@ module.exports = function() {
   // get date from datetime or millis
   o.date = function(d) {
     var t = (d && typeof d !== 'number')? d.getTime() : d;
-    var day = new Date(t);
-    day.setHours(0, 0, 0, 0);
-    return day;
+    var date = new Date(t);
+    date.setHours(0, 0, 0, 0);
+    return date;
   };
 
 
