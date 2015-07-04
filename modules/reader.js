@@ -105,6 +105,6 @@ module.exports = function(c) {
 
 
   // ready!
-  console.log('reader ready!');
+  console.log('[reader] ready!');
   return o;
 };
