@@ -1,7 +1,7 @@
 // @wolfram77
 // ACCESS - maintains access info for card tap
 // db - access : start, end, count
-// () - statusinfo, clear, count, get, put, add
+// () - clear, count, get, put
 
 
 // required modules
@@ -15,131 +15,57 @@ var _ = require('lodash');
 module.exports = function(c, db) {
   var o = new EventEmitter();
 
-  // init
-  var daymillis = 86400000;
 
 
-  // status info
-  var statusinfo = {
-    'e': 'error',
-    'v': 'valid',
-    'i': 'invalid'
-  };
-
-
-
-  // get tap counts (one point)
-  // dst = {e, v, i}
-  var count = function(dst, p, start, end) {
-    console.log('[tap:count] .'+p+' '+start+' -> '+end);
-    db.all('SELECT status, COUNT(*) FROM tap WHERE point=? AND time>=? AND time<? GROUP BY status', p, start, end, function(err, rows) {
-      for(var i=0; i<rows.length; i++)
-        dst[rows[i].status] = rows[i]['COUNT(*)'];
-    });
-  };
-
-
-  // get tap info (a point)
-  // dst = {time: [], card: [], status: []}
-  var get = function(dst, p, start, end) {
-    console.log('[tap:get] .'+p+' '+start+' -> '+end);
-    db.all('SELECT  * FROM tap WHERE point=? AND time>=? AND time<? ORDER BY time ASC', p, start, end, function(err, rows) {
-      z.group(dst, rows, ['time', 'card', 'status']);
-    });
-  };
-
-
-  // put tap info (a point)
-  // pvs = {time: [], card: [], status: []}
-  var put = function(p, src) {
-    console.log('[tap:put] .'+p+' '+src.time[0]+' -> '+_.last(src.time));
-    for(var i=0; i<src.time.length; i++)
-      db.run('INSERT INTO tap(point, time, card, status) VALUES (?, ?, ?, ?)', p, src[i].time, src[i].card, src[i].status);
-  };
-
-
-
-  // status info
-  o.statusinfo = function() {
-    console.log('[tap.statusinfo]');
-    return statusinfo;
-  };
-
-
-  // clear tap info
-  o.clear = function(start, end, fn) {
-    console.log('[tap.clear]');
-    db.run('DELETE FROM tap WHERE time>=? AND time<?', start, end, fn);
-  };
-
-
-  // get tap counts
-  // req = {point: {start, end}}
-  // res = {point: {e, v, i}}
-  o.count = function(req, fn) {
-    console.log('[tap.count]');
+  // clear access info
+  // req = {start: [], end: []}
+  o.clear = function(req, fn) {
+    console.log('[access.clear]');
     db.serialize(function() {
-      var res = {};
-      for(var p in req)
-        count(res[p] = {}, p, req[p].start, req[p].end);
-      db.run('PRAGMA no_op', function() {
-        if(fn) fn(res);
-      });
+      for(var i=0; i<req.start.length; i++)
+        db.run('DELETE FROM access WHERE start=? AND end=?', req.start[i], req.end[i]);
+      db.run('PRAGMA no_op', fn);
     });
   };
 
 
-  // get tap info
-  // req = {point: {start, end}}
-  // res = {point: {time: [], card: [], status: []}}
-  o.get = function(req, fn) {
-    console.log('[tap.get]');
-    db.serialize(function() {
-      var res = {};
-      for(var p in req)
-        get(res[p] = {}, p, req[p].start, req[p].end);
-      db.run('PRAGMA no_op', function() {
-        if(fn) fn(res);
-      });
+  // get access count
+  o.count = function(card, fn) {
+    console.log('[access.count] '+card);
+    db.get('SELECT *, MIN(end-start) FROM access WHERE start<=? AND end>?', card, card, function(err, row) {
+      if(fn) fn(row? row.count : 0);
     });
   };
 
 
-  // put tap info
-  // req = {point: {time: [], card: [], status: []}}
+  // get access info (within start & end)
+  // res = {start: [], end: [], count: []}
+  o.get = function(start, end, fn) {
+    console.log('[access.get]');
+    db.all('SELECT * FROM access WHERE start>=? AND end<=?', start, end, function(err, rows) {
+      z.group(res = {}, rows, ['start', 'end', 'count']);
+      if(fn) fn(res);
+    });
+  };
+
+
+  // put access info
+  // res = {start: [], end: [], count: []}
   o.put = function(req, fn) {
-    console.log('[tap.put]');
+    console.log('[access.put]');
     db.serialize(function() {
-      for(var p in req)
-        if(req[p].time && req[p].time.length>0) put(p, req[p]);
-      db.run('PRAGMA no_op', function() {
-        if(fn) fn();
-      });
-    });
-  };
-
-
-  // add tap info with check (one tap)
-  // req = {point, time, card, status}
-  o.add = function(point, time, card, status, fn) {
-    console.log('[tap.add] .'+point+' t'+time+' '+card+' :'+status);
-    db.serialize(function() {
-      var start = z.date(time).getTime(), end = start+daymillis;
-      db.get('SELECT COUNT(*) FROM tap WHERE time>=? AND time<? AND card=?', start, end, card, function(err, row) {
-        status = status!=='e'? ( err || row['COUNT(*)']<c.ndup? 'v' : 'i' ) : 'e';
-        db.run('INSERT INTO tap(point, time, card, status) VALUES (?, ?, ?, ?)', point, time, card, status);
-        if(fn) fn(statusinfo[status]);
-      });
+      for(var i=0; i<req.start.length; i++)
+        db.run('INSERT INTO access(start, end, count) VALUES (?, ?, ?)', req.start[i], req.end[i], req.count[i]);
+      db.run('PRAGMA no_op', fn);
     });
   };
 
 
 
   // prepare
-  db.run('CREATE TABLE IF NOT EXISTS tap(point TEXT NOT NULL, time INTEGER NOT NULL, card INTEGER NOT NULL, status TEXT NOT NULL, PRIMARY KEY(point, time)) WITHOUT ROWID');
-  o.clear(0, _.now()-c.dkeep);
+  db.run('CREATE TABLE IF NOT EXISTS access(start INTEGER NOT NULL, end INTEGER NOT NULL, count INTEGER NOT NULL, PRIMARY KEY(start, end)) WITHOUT ROWID');
 
   // ready!
-  console.log('[tap] ready!');
+  console.log('[access] ready!');
   return o;
 };

@@ -119,7 +119,7 @@ module.exports = function(c, db) {
   };
 
 
-  // add tap info with check (one tap)
+  // add tap info with check
   // req = {point, time, card, status}
   o.add = function(point, time, card, status, fn) {
     console.log('[tap.add] .'+point+' t'+time+' '+card+' :'+status);
