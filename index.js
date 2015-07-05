@@ -20,7 +20,7 @@ var c = cv.index;
 var app = express();
 app.use(bodyParser.urlencoded({'extended': true}));
 app.use(bodyParser.json());
-var db = new sqlite3.Database(c.file);
+var db = new sqlite3.Database(c.db);
 
 // load parts
 if(c.dev) var reader = require('./modules/reader')(cv.reader);
@@ -75,43 +75,43 @@ app.all('/api/reader/action', function(req, res) {
 
 
 
-// storage.status interface
-app.all('/api/storage/status', function(req, res) {
-  res.json(storage.status);
+// tap.statusinfo interface
+app.all('/api/tap/statusinfo', function(req, res) {
+  res.json(tap.statusinfo());
 });
 
-// storage.clear interface
-app.all('/api/storage/clear', function(req, res) {
+// tap.clear interface
+app.all('/api/tap/clear', function(req, res) {
   var p = req.body;
   if(!p) { res.json('err'); return; }
-  storage.clear(p.start, p.end, function() {
+  tap.clear(p.start, p.end, function() {
     res.json('ok');
   });
 });
 
-// storage.get interface
-app.all('/api/storage/get', function(req, res) {
+// tap.get interface
+app.all('/api/tap/get', function(req, res) {
   var p = req.body;
   if(!p) { res.json('err'); return; }
-  storage.get(p, function(vs) {
+  tap.get(p, function(vs) {
     res.json(vs);
   });
 });
 
-// storage.put interface
-app.all('/api/storage/put', function(req, res) {
+// tap.put interface
+app.all('/api/tap/put', function(req, res) {
   var p = req.body;
   if(!p) { res.json('err'); return; }
-  storage.put(p, function() {
+  tap.put(p, function() {
     res.json('ok');
   });
 });
 
-// storage.add interface
-app.all('/api/storage/add', function(req, res) {
+// tap.add interface
+app.all('/api/tap/add', function(req, res) {
   var p = req.body;
   if(!p) { res.json('err'); return; }
-  storage.add(p, function(status) {
+  tap.add(p, function(status) {
     res.json(status);
   });
 });

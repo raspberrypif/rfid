@@ -1,6 +1,6 @@
 // @wolfram77
-// TAP - maintains info about card taps
-// db - tap : point, time, card, status
+// ACCESS - maintains access info for card tap
+// db - access : start, end, count
 // () - statusinfo, clear, count, get, put, add
 
 
