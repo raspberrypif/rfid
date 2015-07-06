@@ -12,14 +12,14 @@ var _ = require('lodash');
 
 
 // initialize
-module.exports = function(c, storage) {
+module.exports = function(c, tap) {
   var o = new EventEmitter();
 
   // init
   var psync = [], esync = [];
 
 
-  // get request data for storage
+  // get request data for tap
   var reqd  = function() {
     var r = {}, now = _.now();
     console.log('[group:reqd] t'+now);
@@ -42,7 +42,7 @@ module.exports = function(c, storage) {
     console.log('[group:reqopt] .'+p+' ('+len+')');
     return {
       'method': 'GET',
-      'path': '/api/storage/get',
+      'path': '/api/tap/get',
       'host': c.points[p].host,
       'port': c.points[p].port,
       'headers': {
@@ -63,7 +63,7 @@ module.exports = function(c, storage) {
         console.log('[group:sync] .'+p+' ok');
         var resd = JSON.parse(sres);
         updatetsync(resd);
-        storage.put(resd, function() {
+        tap.put(resd, function() {
           if(fn) fn(true);
         });
       });
@@ -190,6 +190,6 @@ module.exports = function(c, storage) {
 
 
   // ready!
-  console.log('group ready!');
+  console.log('[group] ready!');
   return o;
 };

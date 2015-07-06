@@ -24,7 +24,8 @@ var db = new sqlite3.Database(c.db);
 
 // load parts
 if(c.dev) var reader = require('./modules/reader')(cv.reader);
-var group = require('./modules/group')(cv.group, storage);
+var tap = require('./modules/tap')(cv.tap, db);
+var group = require('./modules/group')(cv.group, tap);
 var z = require('./modules/zed')();
 
 
@@ -175,7 +176,7 @@ app.use(function(req, res, next){
 
 // start server
 var server = app.listen(c.port, function() {
-  console.log('ready!');
+  console.log(cv.group.point+' ready!');
   if(c.dev) reader.action('beep', 2000);
 });
 

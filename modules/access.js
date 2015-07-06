@@ -38,10 +38,21 @@ module.exports = function(c, db) {
   };
 
 
-  // get access info (within given time)
+  // get access info (within range)
   // res = {time: [], start: [], end: [], count: []}
-  o.get = function(tstart, tend, fn) {
+  o.get = function(start, end, fn) {
     console.log('[access.get]');
+    db.all('SELECT * FROM access WHERE start<=? AND end>=?', start, end, function(err, rows) {
+      z.group(res = {}, rows, ['time', 'start', 'end', 'count']);
+      if(fn) fn(res);
+    });
+  };
+
+
+  // get access info (within time range)
+  // res = {time: [], start: [], end: [], count: []}
+  o.getfrom = function(tstart, tend, fn) {
+    console.log('[access.getfrom]');
     db.all('SELECT * FROM access WHERE time>=? AND time<?', tstart, tend, function(err, rows) {
       z.group(res = {}, rows, ['time', 'start', 'end', 'count']);
       if(fn) fn(res);
@@ -55,16 +66,11 @@ module.exports = function(c, db) {
     console.log('[access.put]');
     db.serialize(function() {
       for(var i=0; i<req.start.length; i++)
-        db.run('INSERT INTO access(start, end, count) VALUES (?, ?, ?)', req.start[i], req.end[i], req.count[i]);
+        db.run('INSERT INTO access(time, start, end, count) VALUES (?, ?, ?, ?)', req.time[i], req.start[i], req.end[i], req.count[i]);
       db.run('PRAGMA no_op', fn);
     });
   };
 
-
-  // sync with a point
-  o.sync = function() {
-
-  };
 
 
   // prepare

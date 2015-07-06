@@ -23,8 +23,28 @@ header a {
 
 
 /* footer */
+html {
+  position: relative;
+  min-height: 100%;
+}
+body {
+  margin-bottom: 4rem;
+}
 footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 4rem;
   padding-bottom: 2rem;
+}
+
+
+/* text */
+.row {
+  margin: 0;
+}
+main .row {
+  padding-bottom: 2em;
 }
 
 
@@ -44,5 +64,4 @@ footer {
 #chart {
   width: 100%;
   height: 40rem;
-  position: absolute;
 }

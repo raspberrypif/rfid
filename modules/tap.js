@@ -136,8 +136,10 @@ module.exports = function(c, db) {
 
 
   // prepare
-  db.run('CREATE TABLE IF NOT EXISTS tap(point TEXT NOT NULL, time INTEGER NOT NULL, card INTEGER NOT NULL, status TEXT NOT NULL, PRIMARY KEY(point, time)) WITHOUT ROWID');
-  o.clear(0, _.now()-c.dkeep);
+  db.serialize(function() {
+    db.run('CREATE TABLE IF NOT EXISTS tap(point TEXT NOT NULL, time INTEGER NOT NULL, card INTEGER NOT NULL, status TEXT NOT NULL, PRIMARY KEY(point, time)) WITHOUT ROWID');
+    o.clear(0, _.now()-c.dkeep);
+  });
 
   // ready!
   console.log('[tap] ready!');

@@ -61,36 +61,43 @@
 
 
 <main>
-<!-- chart -->
-<div id="chart"></div>
 <!-- date select -->
+<div class="deep-purple lighten-5">
 <div class="container">
 <div class="row">
-  <div class="input-field col s12">
-    <input type="text" class="datepicker center-align">
+  <div class="input-field col m3 s6">
+    <input id="tap-start" type="text" class="datepicker center-align">
+    <label for="tap-start">Start Date</label>
+  </div>
+  <div class="input-field col m3 s6">
+    <input id="tap-end" type="text" class="datepicker center-align">
+    <label for="tap-end">End Date</label>
+  </div>
+  <div class="input-field center-align col m2 s4">
+    <input id="status-e" type="checkbox">
+    <label for="status-e">error</label>
+  </div>
+  <div class="input-field center-align col m2 s4">
+    <input id="status-v" type="checkbox">
+    <label for="status-v">valid</label>
+  </div>
+  <div class="input-field center-align col m2 s4">
+    <input id="status-i" type="checkbox">
+    <label for="status-i">invalid</label>
   </div>
 </div>
-<div class="row">
-  <div class="input-field col s4 m2">
-    <input id="status-error" type="checkbox">
-    <label for="status-error">error</label>
-  </div>
-  <div class="input-field col s4 m2">
-    <input id="status-valid" type="checkbox">
-    <label for="status-valid">valid</label>
-  </div>
-  <div class="input-field col s4 m2">
-    <input id="status-invalid" type="checkbox">
-    <label for="status-invalid">invalid</label>
-  </div>
 </div>
 </div>
 <!-- points select -->
-<div class="row center-align" ng-controller="valCtrl" ng-init="url='/api/group/points';load({});">
-  <div class="input-field col s4 m2" ng-repeat="p in value">
+<div class="blue lighten-5">
+<div class="container">
+<div class="row" ng-controller="valCtrl" ng-init="url='/api/group/points';load({});">
+  <div class="input-field col m2 s4" ng-repeat="p in value">
   <input ng-attr-id="{{'point-'+p}}" type="checkbox">
   <label ng-attr-for="{{'point-'+p}}">{{p}}</label>
   </div>
+</div>
+</div>
 </div>
 <!-- count display -->
 <div class="container">
@@ -98,6 +105,8 @@
   <div class="col s12"><h4 class="red-lighten-5"></h4></div>
 </div>
 </div>
+<!-- chart -->
+<div id="chart"></div>
 </main>
 
 
