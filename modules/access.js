@@ -1,6 +1,6 @@
 // @wolfram77
 // ACCESS - maintains access info for card tap
-// db - access : start, end, count
+// db - access : time, start, end, count
 // () - clear, count, get, put
 
 
@@ -38,19 +38,19 @@ module.exports = function(c, db) {
   };
 
 
-  // get access info (within start & end)
-  // res = {start: [], end: [], count: []}
-  o.get = function(start, end, fn) {
+  // get access info (within given time)
+  // res = {time: [], start: [], end: [], count: []}
+  o.get = function(tstart, tend, fn) {
     console.log('[access.get]');
-    db.all('SELECT * FROM access WHERE start>=? AND end<=?', start, end, function(err, rows) {
-      z.group(res = {}, rows, ['start', 'end', 'count']);
+    db.all('SELECT * FROM access WHERE time>=? AND time<?', tstart, tend, function(err, rows) {
+      z.group(res = {}, rows, ['time', 'start', 'end', 'count']);
       if(fn) fn(res);
     });
   };
 
 
   // put access info
-  // res = {start: [], end: [], count: []}
+  // req = {time: [], start: [], end: [], count: []}
   o.put = function(req, fn) {
     console.log('[access.put]');
     db.serialize(function() {
@@ -61,9 +61,14 @@ module.exports = function(c, db) {
   };
 
 
+  // sync with a point
+  o.sync = function() {
+
+  };
+
 
   // prepare
-  db.run('CREATE TABLE IF NOT EXISTS access(start INTEGER NOT NULL, end INTEGER NOT NULL, count INTEGER NOT NULL, PRIMARY KEY(start, end)) WITHOUT ROWID');
+  db.run('CREATE TABLE IF NOT EXISTS access(time INTEGER NOT NULL, start INTEGER NOT NULL, end INTEGER NOT NULL, count INTEGER NOT NULL, PRIMARY KEY(start, end)) WITHOUT ROWID');
 
   // ready!
   console.log('[access] ready!');
