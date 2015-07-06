@@ -41,28 +41,28 @@
 </div>
 
 <!-- header -->
-<header>
-<div class="row">
-  <div class="col s12 m6 name"><a href="#">
+<header class="row">
+  <div class="col s12 m6 name" is="device name"><a href="#">
     <h1><i class="fa fa-unlock-alt fa-lg"></i> <span id="title">rfid</span></h1>
   </a></div>
-  <div class="col s4 m2 center"><a href="#">
-    <h1 is="sync"><i class="fa fa-refresh fa-lg"></i></h1>
+  <div class="col s4 m2 center" is="sync now"><a href="#">
+    <h1><i class="fa fa-refresh fa-lg"></i></h1>
   </a></div>
-  <div class="col s4 m2 center"><a href="#">
-    <h1 is="log"><i class="fa fa-file-text fa-lg"></i></h1>
+  <div class="col s4 m2 center active" is="download report"><a href="#">
+    <h1><i class="fa fa-file-text fa-lg"></i></h1>
   </a></div>
-  <div class="col s4 m2 center"><a class="modal-trigger" href="#config">
-    <h1 is="config"><i class="fa fa-cog fa-lg"></i></h1>
+  <div class="col s4 m2 center" is="change config"><a class="modal-trigger" href="#config">
+    <h1><i class="fa fa-cog fa-lg"></i></h1>
   </a></div>
-</div>
 </header>
 
 
-
 <main>
-<!-- date select -->
-<div class="deep-purple lighten-5">
+
+
+
+<!-- range select -->
+<div class="deep-purple lighten-5" is="selected range">
 <div class="container">
 <div class="row">
   <div class="input-field col m3 s6">
@@ -89,7 +89,7 @@
 </div>
 </div>
 <!-- points select -->
-<div class="blue lighten-5">
+<div class="blue lighten-5" is="selected points">
 <div class="container">
 <div class="row" ng-controller="valCtrl" ng-init="url='/api/group/points';load({});">
   <div class="input-field col m2 s4" ng-repeat="p in value">
@@ -100,10 +100,10 @@
 </div>
 </div>
 <!-- count display -->
-<div class="container">
 <div class="row">
-  <div class="col s12"><h4 class="red-lighten-5"></h4></div>
-</div>
+  <div class="red lighten-3 col s4 center" is="invalid taps"><h4>0</h4></div>
+  <div class="green lighten-3 col s4 center" is="valid taps"><h4>0</h4></div>
+  <div class="blue lighten-3 col s4 center" is="error taps"><h4>0</h4></div>
 </div>
 <!-- chart -->
 <div id="chart"></div>

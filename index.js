@@ -90,6 +90,15 @@ app.all('/api/tap/clear', function(req, res) {
   });
 });
 
+// tap.count interface
+app.all('/api/tap/count', function(req, res) {
+  var p = req.body;
+  if(!p) { res.json('err'); return; }
+  tap.count(p, function(fres) {
+    res.json(fres);
+  });
+});
+
 // tap.get interface
 app.all('/api/tap/get', function(req, res) {
   var p = req.body;
