@@ -8,11 +8,14 @@ header {
 }
 header .col {
   padding: 1rem !important;
-  -webkit-transition: background 1s; /* Safari */
-  transition: background 1s;
+  -webkit-transition: background 0.5s; /* Safari */
+  transition: background 0.5s;
+}
+header.active {
+  background-color: #227
 }
 header .col:hover, header .col:active {
-  background-color: #222
+  background-color: #337
 }
 header .name {
   padding-left: 2rem !important;
