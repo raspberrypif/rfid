@@ -20,57 +20,39 @@
 </head>
 
 
-<body ng-app="app">
 
-<!-- config -->
-<div id="config" class="modal bottom-sheet" ng-controller="jsonCtrl" ng-init="init('config-json')">
-  <div class="modal-content">
-    <h4>Config</h4>
-    <div class="row">
-    <div class="input-field col s12">
-      <input id="config-url" type="text" ng-model="url" ng-init="url='/api/config/get'">
-      <label for="config-url">URL</label>
-    </div>
-    </div>
-    <div id="config-json" style="height: 20rem;"></div>
-  </div>
-  <div class="modal-footer">
-    <button class="modal-action modal-close waves-effect waves-green btn-flat">Cancel</a>
-    <button class="modal-action waves-effect btn" ng-click="load(get())">Run</button>
-  </div>
-</div>
+<body ng-app="app" ng-controller="valCtrl" ng-init="set(0)">
 
 <!-- header -->
 <header class="row">
-<div class="col s12 m6 name" is="tap"><a href="#">
+<div class="col s12 m6 name" is="tap"><a href="#" ng-click="set(is(0)? 1 : 0)">
   <h1><i class="fa fa-credit-card fa-lg"></i> <span id="title">rfid</span></h1>
 </a></div>
-<div class="col s4 m2 center" is="access"><a href="#">
+<div class="col s4 m2 center" is="access"><a href="#" ng-click="set(2)">
   <h1><i class="fa fa-filter fa-lg"></i></h1>
 </a></div>
-<div class="col s4 m2 center" is="group"><a href="#">
+<div class="col s4 m2 center" is="group"><a href="#" ng-click="set(3)">
   <h1><i class="fa fa-group fa-lg"></i></h1>
 </a></div>
-<div class="col s4 m2 center" is="config"><a class="modal-trigger" href="#config">
+<div class="col s4 m2 center" is="config"><a href="#config" ng-click="set(4)">
   <h1><i class="fa fa-cog fa-lg"></i></h1>
 </a></div>
 </header>
 
 
 <main>
-
-
-
 <!-- range select -->
+<div ng-controller="tapLinkCtrl" ng-init="init('chart');load(10000);">
+<section ng-show="is(1)">
 <div class="deep-purple lighten-5" is="selected range">
 <div class="container">
 <div class="row">
   <div class="input-field col m3 s6">
-    <input id="tap-start" type="text" class="datepicker center-align">
+    <input id="tap-start" type="text" class="datepicker center-align" ng-model="startstr">
     <label for="tap-start">Start Date</label>
   </div>
   <div class="input-field col m3 s6">
-    <input id="tap-end" type="text" class="datepicker center-align">
+    <input id="tap-end" type="text" class="datepicker center-align" ng-model="endstr">
     <label for="tap-end">End Date</label>
   </div>
   <div class="input-field center-align col m2 s4">
@@ -91,14 +73,17 @@
 <!-- points select -->
 <div class="blue lighten-5" is="selected points">
 <div class="container">
-<div class="row" ng-controller="valCtrl" ng-init="url='/api/group/points';load({});">
-  <div class="input-field col m2 s4" ng-repeat="p in value">
-  <input ng-attr-id="{{'point-'+p}}" type="checkbox">
+<div class="row">
+  <div class="input-field col m2 s4" ng-repeat="(p, v) in points">
+  <input ng-attr-id="{{'point-'+p}}" type="checkbox" ng-model="points[p]">
   <label ng-attr-for="{{'point-'+p}}">{{p}}</label>
   </div>
 </div>
 </div>
 </div>
+</section>
+
+<section ng-show="is(0) || is(1)">
 <!-- count display -->
 <div class="row">
   <div class="red lighten-3 col s4 center" is="invalid taps"><h4>0</h4></div>
@@ -107,8 +92,33 @@
 </div>
 <!-- chart -->
 <div id="chart"></div>
-</main>
+</section>
+</div>
 
+
+<section ng-show="is(4)">
+<!-- config -->
+<div class="container block" ng-controller="jsonCtrl" ng-init="init('config-json')">
+<div class="row">
+<div class="input-field col s11">
+  <input id="config-url" type="text" ng-model="url" ng-init="url='/api/config/get'">
+  <label for="config-url">URL</label>
+</div>
+<div class="input-field col s1">
+  <a class="btn btn-floating btn-large waves-effect" is="send" ng-click="load(get())" href="#">
+    <i class="fa fa-paper-plane"></i>
+  </a>
+</div>
+</div>
+<div class="row">
+<div class="col s12">
+  <div id="config-json" style="height: 30rem;"></div>
+</div>
+</div>
+</div>
+</section>
+
+</main>
 
 
 <footer class="page-footer">

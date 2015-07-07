@@ -169,35 +169,63 @@ app.controller('jsonCtrl', ['$scope', '$http', function($scope, $http) {
 }]);
 
 
-/*
-// chart controller
-app.controller('chartCtrl', ['$scope', '$http', function($scope, $http) {
+
+// tap link controller
+app.controller('tapLinkCtrl', ['$scope', '$http', function($scope, $http) {
   var o = $scope; // (sel)
   var upoints = '/api/group/points';
-  var udata = '/api/storage/get';
+  var ucount = '/api/tap/count';
+  var udata = '/api/tap/get';
 
 
-  // initialize points
-  // start = start time of chart
-  var ipoints = function(start, fn) {
-    o.has = {};
-    o.data = {};
-    $http.post(upoints, {}).success(function(res) {
-      o.point = _.last(res);
-      _.forEach(res, function(p) {
-        o.has[p] = {'start': start, 'end': start};
-        o.data[p] = [];
+  // initialize
+  var init = function(id, fn) {
+    var d = new Date();
+    o.start = d.getTime();
+    d.setDate(d.getDate()+1);
+    o.end = d.getTime();
+    o.startstr = (new Date(o.start)).toDateString();
+    o.endstr = (new Date(o.end)).toDateString();
+    o.status = {'i': 1, 'v': 1, 'e': 1};
+    $http.post(upoints, {}).success(function(ps) {
+      o.points = {};
+      o.point = _.last(ps);
+      _.forEach(ps, function(p) {
+        o.points[p] = true;
       });
-      o.points = res;
-      o.draw = [];
-      if(fn) fn(res);
+      if(fn) fn(ps);
     });
+    $('#'+id).highcharts('StockChart', {
+      'tooltip': {
+        'pointFormat': '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>'
+      },
+      'series': [
+        {
+          'name': 'taps',
+          'data': []
+        },
+      ]
+    });
+    o.chart = $('#'+id).highcharts();
+  };
+
+
+  // reset (on date change)
+  var reset = function(start) {
+    o.has = {};
+    o.count = {};
+    o.data = {};
+    for(var p in o.points) {
+      o.has[p] = {'start': start, 'end': start};
+      o.count[p] = {'i': 0, 'v': 0, 'e': 0};
+      o.data[p] = {'time': [], 'card': [], 'status': []};
+    }
+    o.tcount = {'i': 0, 'v': 0, 'e': 0};
   };
 
 
   // request for data
-  // end = end time of chart
-  var req = function(end) {
+  var dreq = function(end) {
     var req = {};
     for(var p in o.has)
       req[p] = {'start': o.has[p].end+1, 'end': end};
@@ -205,80 +233,108 @@ app.controller('chartCtrl', ['$scope', '$http', function($scope, $http) {
   };
 
 
-  // load data
-  // end = end time of chart
-  var load = function(end, fn) {
-    $http.post(udata, {'req': req(end)}).success(function(res) {
+  // load tap data
+  var loadtap = function(end, fn) {
+    $http.post(udata, dreq(end)).success(function(res) {
       for(var p in res) {
         z.pushobj(o.data[p], res[p]);
-        if(res[p].time.length>0) o.has[p].end = _.last(o.res[p].time);
+        if(res[p].time && res[p].time.length>0) o.has[p].end = _.last(res[p].time);
       }
       if(fn) fn(res);
     });
   };
 
 
-  // get full chart data
-  var chartdata = function() {
-    var avs = [];
-    for(var p in o.data)
-      if(o.sel[p]) avs.push(o.data[p].slice(0));
-    var vld = charteval(avs);
-    avs = [];
-    for(var p in o.data)
-      if(o.sel[p]) avs.push(o.data[p].inv.slice(0));
-    var inv = charteval(avs);
-    return {'vld': vld, 'inv': inv};
-  };
-
-
-  // init chart
-  var initchart = function(id) {
-    o.chart = $('#'+id).highcharts('StockChart', {
-      'tooltip': {
-        'pointFormat': '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>'
-      },
-      'series': [
-        {
-          'name': 'valid',
-          'data': []
-        },
-        {
-          'name': 'invalid',
-          'data': []
-        }
-      ]
+  // load tap count
+  var loadcount = function(end, fn) {
+    $http.post(ucount, dreq(end)).success(function(res) {
+      for(var p in res) {
+        o.count[p].v += res[p].v || 0;
+        o.count[p].i += res[p].i || 0;
+        o.count[p].e += res[p].e || 0;
+      }
+      for(var p in o.count) {
+        if(!o.points[p]) continue;
+        o.tcount.i += o.count[p].i;
+        o.tcount.v += o.count[p].v;
+        o.tcount.e += o.count[p].e;
+      }
+      if(fn) fn(res);
     });
   };
 
-  // init
-  o.init = function(id) {
-    initchart(id);
-    o.sel = {};
-    o.datestr = (new Date()).toDateString();
-    o.refresh(o.datestr);
+
+  // take min value from sources
+  var mintake = function(s) {
+    var mv = null, mi = 0;
+    for(var i=0; i<s.length; i++) {
+      if(!s[i] || s[i].length===0) continue;
+      if(mv===null || s[i][0]<mv) {
+        mv = s[i][0];
+        mi = i;
+      }
+    }
+    if(mv !== null) s[mi].shift();
+    return mv;
   };
 
-  // refresh
-  o.refresh = function(dt) {
-    var d = new Date(Date.parse(dt));
-    o.start = day(d).getTime();
-    d.setDate(d.getDate()+1);
-    o.end = day(d).getTime()-1;
-    loadpoints(urlpoints, o.start);
+
+  // chartize data
+  var chartize = function(dst, src, step, gap, fn) {
+    for(var i=0; i<step; i++) {
+      var t = mintake(src);
+      if(t === null) {
+        if(fn) fn(dst);
+        return;
+      }
+      var lst = _.last(dst);
+      var t0 = lst? lst[0] || 0 : 0;
+      var v = [t, 1000/(t-t0)];
+      dst.push(v);
+    }
+    setTimeout(function() { chartize(dst, src, step, gap, fn); }, gap);
   };
+
+
+  // keep matches
+  var keepmatch = function(val, ref, mtch) {
+    var res = [];
+    for(var i=0; i<val.length; i++)
+      if(mtch[ref[i]]) res.push(val[i]);
+    return res;
+  };
+
+
+  // init
+  o.init = function(id) {
+    init(id, function() {
+      o.refresh();
+    });
+  };
+
+
+  // refresh
+  o.refresh = function() {
+    o.start = (new Date(Date.parse(o.startstr))).getTime();
+    o.end = (new Date(Date.parse(o.endstr))).getTime();
+    reset(o.start);
+  };
+
 
   // load
   o.load = function(gap) {
     if(gap) setInterval(o.load, gap);
-    else loaddata(urldata, o.end, function() {
-      var ans = chartdata(o.sel);
-      console.log('o.load[ans]:'+JSON.stringify(ans));
-      console.log(o.chart);
-      o.chart = $('#chart').highcharts();
-      o.chart.series[0].setData(ans.vld);
-      o.chart.series[1].setData(ans.inv);
+    else loadcount(o.end, function() {
+      loadtap(o.end, function() {
+        var src = [];
+        for(var p in o.data)
+          src.push(keepmatch(o.data[p].time, o.data[p].status, o.status));
+        o.draw = [];
+        chartize(o.draw, src, 200, 25, function() {
+          o.chart.series[0].setData(o.draw);
+        });
+      });
     });
   };
 }]);
-*/
+
