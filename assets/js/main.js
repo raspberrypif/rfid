@@ -60,8 +60,8 @@ var itooltip = function() {
 // initialize datepicker
 var idatepicker = function() {
   $('.datepicker').pickadate({
-    selectMonths: true, // Creates a dropdown to control month
-    selectYears: 15 // Creates a dropdown of 15 years to control year
+    'selectMonths': true, // Creates a dropdown to control month
+    'selectYears': 15 // Creates a dropdown of 15 years to control year
   });
 };
 
@@ -136,9 +136,9 @@ app.controller('jsonCtrl', ['$scope', '$http', function($scope, $http) {
   o.init = function(id) {
     var e = document.getElementById(id);
     var options = {
-      mode: 'tree',
-      modes: ['code', 'form', 'text', 'tree', 'view'],
-      error: function (err) { alert(err.toString()); }
+      'mode': 'tree',
+      'modes': ['code', 'form', 'text', 'tree', 'view'],
+      'error': function (err) { alert(err.toString()); }
     };
     o.editor = new JSONEditor(e, options, {});
   };
@@ -178,15 +178,21 @@ app.controller('tapLinkCtrl', ['$scope', '$http', function($scope, $http) {
   var udata = '/api/tap/get';
 
 
-  // initialize
-  var init = function(id, fn) {
+  // default date range
+  var defrange = function() {
     var d = new Date();
     o.start = d.getTime();
     d.setDate(d.getDate()+1);
     o.end = d.getTime();
     o.startstr = (new Date(o.start)).toDateString();
     o.endstr = (new Date(o.end)).toDateString();
-    o.status = {'i': 1, 'v': 1, 'e': 1};
+  };
+
+
+  // initialize
+  var init = function(id, fn) {
+    defrange();
+    o.status = {'i': true, 'v': true, 'e': true};
     $http.post(upoints, {}).success(function(ps) {
       o.points = {};
       o.point = _.last(ps);
@@ -248,11 +254,13 @@ app.controller('tapLinkCtrl', ['$scope', '$http', function($scope, $http) {
   // load tap count
   var loadcount = function(end, fn) {
     $http.post(ucount, dreq(end)).success(function(res) {
+      console.log(JSON.stringify(res));
       for(var p in res) {
         o.count[p].v += res[p].v || 0;
         o.count[p].i += res[p].i || 0;
         o.count[p].e += res[p].e || 0;
       }
+      o.tcount = {'i': 0, 'v': 0, 'e': 0};
       for(var p in o.count) {
         if(!o.points[p]) continue;
         o.tcount.i += o.count[p].i;
@@ -315,8 +323,10 @@ app.controller('tapLinkCtrl', ['$scope', '$http', function($scope, $http) {
 
   // refresh
   o.refresh = function() {
+    console.log('refresh()');
     o.start = (new Date(Date.parse(o.startstr))).getTime();
     o.end = (new Date(Date.parse(o.endstr))).getTime();
+    console.log(o.start+' -> '+o.end);
     reset(o.start);
   };
 
@@ -328,9 +338,10 @@ app.controller('tapLinkCtrl', ['$scope', '$http', function($scope, $http) {
       loadtap(o.end, function() {
         var src = [];
         for(var p in o.data)
-          src.push(keepmatch(o.data[p].time, o.data[p].status, o.status));
+          if(o.points[p]) src.push(keepmatch(o.data[p].time, o.data[p].status, o.status));
         o.draw = [];
         chartize(o.draw, src, 200, 25, function() {
+          console.log('draw.length = '+o.draw.length);
           o.chart.series[0].setData(o.draw);
         });
       });

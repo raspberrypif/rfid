@@ -42,30 +42,30 @@
 
 <main>
 <!-- range select -->
-<div ng-controller="tapLinkCtrl" ng-init="init('chart');load(10000);">
+<div ng-controller="tapLinkCtrl" ng-init="init('chart');load(5000);">
 <section ng-show="is(1)">
-<div class="deep-purple lighten-5" is="selected range">
+<div class="deep-purple lighten-5 block">
 <div class="container">
 <div class="row">
   <div class="input-field col m3 s6">
-    <input id="tap-start" type="text" class="datepicker center-align" ng-model="startstr">
+    <input id="tap-start" type="text" class="datepicker center-align" ng-model="startstr" ng-change="refresh()">
     <label for="tap-start">Start Date</label>
   </div>
   <div class="input-field col m3 s6">
-    <input id="tap-end" type="text" class="datepicker center-align" ng-model="endstr">
+    <input id="tap-end" type="text" class="datepicker center-align" ng-model="endstr" ng-change="refresh()">
     <label for="tap-end">End Date</label>
   </div>
   <div class="input-field center-align col m2 s4">
-    <input id="status-e" type="checkbox">
-    <label for="status-e">error</label>
+    <input id="status-i" type="checkbox" ng-model="status.i">
+    <label for="status-i">invalid</label>
   </div>
   <div class="input-field center-align col m2 s4">
-    <input id="status-v" type="checkbox">
+    <input id="status-v" type="checkbox" ng-model="status.v">
     <label for="status-v">valid</label>
   </div>
   <div class="input-field center-align col m2 s4">
-    <input id="status-i" type="checkbox">
-    <label for="status-i">invalid</label>
+    <input id="status-e" type="checkbox" ng-model="status.e">
+    <label for="status-e">error</label>
   </div>
 </div>
 </div>
@@ -86,9 +86,9 @@
 <section ng-show="is(0) || is(1)">
 <!-- count display -->
 <div class="row">
-  <div class="red lighten-3 col s4 center" is="invalid taps"><h4>0</h4></div>
-  <div class="green lighten-3 col s4 center" is="valid taps"><h4>0</h4></div>
-  <div class="blue lighten-3 col s4 center" is="error taps"><h4>0</h4></div>
+  <div class="red lighten-3 col s4 center" is="invalid taps"><h4>{{tcount.i}}</h4></div>
+  <div class="green lighten-3 col s4 center" is="valid taps"><h4>{{tcount.v}}</h4></div>
+  <div class="blue lighten-3 col s4 center" is="error taps"><h4>{{tcount.e}}</h4></div>
 </div>
 <!-- chart -->
 <div id="chart"></div>
