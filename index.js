@@ -194,9 +194,8 @@ var server = app.listen(c.port, function() {
 // handle card
 if(c.dev) reader.on('card', function(cbits, card, status) {
   console.log('['+cbits+'] : '+card+' | '+status);
-  storage.add({'time': _.now(), 'card': card, 'point': cv.group.point, 'status': status}, function(status) {
+  tap.add(cv.group.point, _.now(), card, status, function(status) {
     reader.action(status);
-    c.count++;
   });
 });
 

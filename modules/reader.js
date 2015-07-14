@@ -88,9 +88,10 @@ module.exports = function(c) {
         break;
       case 'beep':
         setval(pbeep, 0, dur || c.action.dbeep);
+        break;
       case 'valid':
         toggleval(pbeep, 0, dur || c.action.dvld, c.action.dbeep);
-        toggle(pgreen, 0, dur || c.action.dvld);
+        toggleval(pgreen, 0, dur || c.action.dvld);
         break;
       case 'error':
         setval(pbeep, 0, dur || c.action.derr);

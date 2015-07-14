@@ -30,7 +30,7 @@ module.exports = function(file) {
   // set
   o.set = function(v) {
     console.log('[config.set]');
-    _.assign(val, v);
+    _.merge(val, v);
   };
 
 
@@ -39,7 +39,7 @@ module.exports = function(file) {
     console.log('[config.load]');
     fs.readFile(file, function(err, data) {
       if(err) throw err;
-      _.assign(val, JSON.parse(data));
+      _.merge(val, JSON.parse(data));
       if(fn) fn(val);
     });
   };
@@ -58,7 +58,7 @@ module.exports = function(file) {
   // load (now)
   o.loadnow = function() {
     console.log('[config.loadnow]');
-    _.assign(val, JSON.parse(fs.readFileSync(file)));
+    _.merge(val, JSON.parse(fs.readFileSync(file)));
     return val;
   };
 
