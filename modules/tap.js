@@ -54,7 +54,7 @@ module.exports = function(c, db) {
   var put = function(p, src) {
     console.log('[tap:put] .'+p+' '+src.time[0]+' -> '+_.last(src.time));
     for(var i=0; i<src.time.length; i++)
-      db.run('INSERT INTO tap(point, time, card, status) VALUES (?, ?, ?, ?)', p, src[i].time, src[i].card, src[i].status);
+      db.run('INSERT INTO tap(point, time, card, status) VALUES (?, ?, ?, ?)', p, src.time[i], src.card[i], src.status[i]);
   };
 
 
