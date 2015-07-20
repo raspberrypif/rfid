@@ -66,6 +66,15 @@ app.all('/api/config/save', function(req, res) {
 
 
 
+// reader.card interface
+app.all('/api/reader/card', function(req, res) {
+  var p = z.httpreq(req);
+  if(!p.card) { res.json('err'); return; }
+  if(c.dev) reader.card(parseFloat(p.card), parseFloat(p.cbits));
+  res.json('ok');
+});
+
+
 // reader.action interface
 app.all('/api/reader/action', function(req, res) {
   var p = z.httpreq(req);
@@ -193,7 +202,6 @@ var server = app.listen(c.port, function() {
 
 // handle card
 if(c.dev) reader.on('card', function(cbits, card, status) {
-  console.log('['+cbits+'] : '+card+' | '+status);
   tap.add(cv.group.point, _.now(), card, status, function(status) {
     reader.action(status);
   });

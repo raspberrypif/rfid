@@ -5,6 +5,7 @@
 # required modules
 import time
 import RPi.GPIO as GPIO
+from requests_futures.sessions import FuturesSession
 
 
 # config
@@ -25,16 +26,10 @@ pcard = 8
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(pdata0, GPIO.IN)
 GPIO.setup(pdata1, GPIO.IN)
-GPIO.setup(pgreen, GPIO.OUT)
-GPIO.setup(pbeep, GPIO.OUT)
-# GPIO.setup(pred, GPIO.OUT)
-# GPIO.setup(phold, GPIO.IN)
-# GPIO.setup(pcard, GPIO.IN)
-GPIO.output(pgreen, GPIO.HIGH)
-GPIO.output(pbeep, GPIO.HIGH)
 
 
 # initialize
+session = FuturesSession()
 card = 0
 cbits = 0
 
@@ -60,13 +55,15 @@ GPIO.add_event_detect(pdata1, GPIO.FALLING, callback=cdata1_low)
 
 
 # card read code
-print "pi-snax-reader"
+print "[reader] ready!"
 try:
     while True:
         time.sleep(ctimeout)
         if cbits > 0:
             time.sleep(ctimeout)
             print "[%d bit] - %d" % (cbits, card)
+            payload = {"card": card, "cbits": cbits}
+            session.post("http://localhost/api/reader/card", payload)
             card = cbits = 0
 except KeyboardInterrupt:
     GPIO.cleanup()
