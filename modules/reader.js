@@ -91,7 +91,7 @@ module.exports = function(c) {
         break;
       case 'valid':
         toggleval(pbeep, 0, dur || c.action.dvld, c.action.dbeep);
-        toggleval(pgreen, 0, dur || c.action.dvld);
+        toggleval(pgreen, 0, dur || c.action.dvld, c.action.dbeep);
         break;
       case 'error':
         setval(pbeep, 0, dur || c.action.derr);
