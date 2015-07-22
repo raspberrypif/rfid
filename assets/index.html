@@ -9,6 +9,8 @@
   <link rel="stylesheet" href="/mod/jsoneditor/jsoneditor.min.css">
   <script src="/js/jquery.min.js"></script>
   <script src="/js/angular.min.js"></script>
+  <script src="/js/blob.min.js"></script>
+  <script src="/js/filesaver.min.js"></script>
   <script src="/js/materialize.min.js"></script>
   <script src="/js/lodash.min.js"></script>
   <script src="/mod/jsoneditor/jsoneditor.min.js"></script>
@@ -25,18 +27,18 @@
 
 <!-- header -->
 <header class="row">
-<div class="col s12 m6 name" is="tap"><a href="#" ng-click="set(is(0)? 1 : 0)">
-  <h1><i class="fa fa-credit-card fa-lg"></i> <span id="title">rfid</span></h1>
-</a></div>
-<div class="col s4 m2 center" is="access"><a href="#" ng-click="set(2)">
-  <h1><i class="fa fa-filter fa-lg"></i></h1>
-</a></div>
-<div class="col s4 m2 center" is="group"><a href="#" ng-click="set(3)">
-  <h1><i class="fa fa-group fa-lg"></i></h1>
-</a></div>
-<div class="col s4 m2 center" is="config"><a href="#config" ng-click="set(4)">
-  <h1><i class="fa fa-cog fa-lg"></i></h1>
-</a></div>
+<div class="col s12 m6 name" is="tap" ng-class="{active: is(0)||is(1)}" ng-click="set(is(0)? 1 : 0)">
+  <a href="#"><h1><i class="fa fa-credit-card fa-lg"></i> <span id="title">rfid</span></h1></a>
+</div>
+<div class="col s4 m2 center" is="access" ng-class="{active: is(2)}" ng-click="set(2)">
+  <a href="#"><h1><i class="fa fa-filter fa-lg"></i></h1></a>
+</div>
+<div class="col s4 m2 center" is="group" ng-class="{active: is(3)}" ng-click="set(3)">
+  <a href="#"><h1><i class="fa fa-group fa-lg"></i></h1></a>
+</div>
+<div class="col s4 m2 center" is="config" ng-class="{active: is(4)}" ng-click="set(4)">
+  <a href="#" ng-click="set(4)"><h1><i class="fa fa-cog fa-lg"></i></h1></a>
+</div>
 </header>
 
 
@@ -92,6 +94,10 @@
 </div>
 <!-- chart -->
 <div id="chart"></div>
+<!-- download report -->
+<div class="fixed-action-btn" style="bottom:45px; right:24px;">
+  <a class="btn-floating btn-large red"><i class="fa fa-file-text"></i></a>
+</div>
 </section>
 </div>
 
@@ -100,13 +106,13 @@
 <!-- config -->
 <div class="container block" ng-controller="jsonCtrl" ng-init="init('config-json')">
 <div class="row">
-<div class="input-field col s11">
+<div class="input-field col s8">
   <input id="config-url" type="text" ng-model="url" ng-init="url='/api/config/get'">
   <label for="config-url">URL</label>
 </div>
-<div class="input-field col s1">
-  <a class="btn btn-floating btn-large waves-effect" is="send" ng-click="load(get())" href="#">
-    <i class="fa fa-paper-plane"></i>
+<div class="input-field col s4">
+  <a class="btn btn-large waves-effect max-width" is="run" ng-click="load(get())">
+    <i class="fa fa-play"></i> Run
   </a>
 </div>
 </div>
