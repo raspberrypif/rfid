@@ -69,7 +69,10 @@ module.exports = function(c, db) {
   // clear tap info
   o.clear = function(start, end, fn) {
     console.log('[tap.clear]');
-    db.run('DELETE FROM tap WHERE time>=? AND time<?', start, end, fn);
+    db.serialize(function() {
+      db.run('DELETE FROM tap WHERE time>=? AND time<?', start, end);
+      db.run('VACUUM', fn);
+    });
   };
 
 

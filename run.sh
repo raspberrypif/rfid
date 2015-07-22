@@ -1,5 +1,5 @@
 #!/bin/sh
 cd /home/pi/pi-rfid
-sudo python modules/reader.py &
-sudo node index > data/log &
+sudo python modules/reader.py > data/reader.log &
+sudo node index.js > data/index.log &
 cd /
