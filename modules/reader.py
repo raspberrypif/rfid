@@ -30,23 +30,23 @@ GPIO.setup(pdata1, GPIO.IN)
 
 # initialize
 session = FuturesSession()
-card = 0
+card = 1
 cbits = 0
 
 
 
 # handle card data0 low
 def cdata0_low(channel):
-    global card, cbits
-    card <<= 1
-    cbits += 1
+  global card, cbits
+  card <<= 1
+  cbits += 1
 
 
 # handle card data1 low
 def cdata1_low(channel):
-    global card, cbits
-    card = (card << 1) | 1
-    cbits += 1
+  global card, cbits
+  card = (card << 1) | 1
+  cbits += 1
 
 
 # set card data handlers
@@ -57,13 +57,14 @@ GPIO.add_event_detect(pdata1, GPIO.FALLING, callback=cdata1_low)
 # card read code
 print "[reader] ready!"
 try:
-    while True:
-        time.sleep(ctimeout)
-        if cbits > 0:
-            time.sleep(ctimeout)
-            print "[%d bit] - %d" % (cbits, card)
-            payload = {"card": card, "cbits": cbits}
-            session.post("http://localhost/api/reader/card", payload)
-            card = cbits = 0
+  while True:
+    time.sleep(ctimeout)
+    if cbits > 0:
+      time.sleep(ctimeout)
+      print "[%d bit] - %d" % (cbits, card)
+      payload = {"card": card, "cbits": cbits}
+      session.post("http://localhost/api/reader/card", payload)
+      card = 1
+      cbits = 0
 except KeyboardInterrupt:
-    GPIO.cleanup()
+  GPIO.cleanup()
