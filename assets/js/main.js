@@ -201,16 +201,12 @@ app.controller('tapLinkCtrl', ['$scope', '$http', function($scope, $http) {
       });
       if(fn) fn(ps);
     });
+    Highcharts.setOptions({ 'global': { 'useUTC': false } });
     $('#'+id).highcharts('StockChart', {
-      'tooltip': {
-        'pointFormat': '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.change}%)<br/>'
-      },
-      'series': [
-        {
-          'name': 'taps',
-          'data': []
-        },
-      ]
+      'tooltip': { 'pointFormat': '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b><br/>' },
+      'series': [ { 'name': 'taps', 'data': [] } ],
+      'xAxis': { 'ordinal': false },
+      'yAxis': { 'min': 0 }
     });
     o.chart = $('#'+id).highcharts();
   };
@@ -295,9 +291,7 @@ app.controller('tapLinkCtrl', ['$scope', '$http', function($scope, $http) {
         if(fn) fn(dst);
         return;
       }
-      var lst = _.last(dst);
-      var t0 = lst? lst[0] || 0 : 0;
-      var v = [t, 1000/(t-t0)];
+      var v = [t, dst.length+1];
       dst.push(v);
     }
     setTimeout(function() { chartize(dst, src, step, gap, fn); }, gap);
