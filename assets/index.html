@@ -83,6 +83,26 @@
 </div>
 </div>
 </div>
+<!-- mode select, report -->
+<div class="green lighten-5" is="display mode">
+<div class="container">
+<div class="row">
+  <div class="input-field center-align col s3">
+    <input id="mode-graph" name="disp-mode" type="radio">
+    <label for="mode-graph"><i class="fa fa-area-chart fa-lg"></i> graph</label>
+  </div>
+  <div class="input-field center-align col s3">
+    <input id="mode-list" name="disp-mode" type="radio">
+    <label for="mode-list"><i class="fa fa-list fa-lg"></i> list</label>
+  </div>
+  <div class="input-field center-align col s6">
+    <a class="btn-flat waves-effect waves-teal">
+      <i class="fa fa-download fa-lg"></i> Report
+    </a>
+  </div>
+</div>
+</div>
+</div>
 </section>
 
 <section ng-show="is(0) || is(1)">
@@ -94,10 +114,6 @@
 </div>
 <!-- chart -->
 <div id="chart"></div>
-<!-- download report -->
-<div class="fixed-action-btn" style="bottom:45px; right:24px;">
-  <a class="btn-floating btn-large red"><i class="fa fa-file-text"></i></a>
-</div>
 </section>
 </div>
 
