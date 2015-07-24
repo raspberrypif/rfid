@@ -20,7 +20,7 @@ module.exports = function(c, db) {
   // clear access info
   // req = {start: [], end: []}
   o.clear = function(req, fn) {
-    console.log('[access.clear]');
+    console.log('[access.clear] %j', req);
     db.serialize(function() {
       for(var i=0; i<req.start.length; i++)
         db.run('DELETE FROM access WHERE start=? AND end=?', req.start[i], req.end[i]);
@@ -31,7 +31,7 @@ module.exports = function(c, db) {
 
   // get access count
   o.count = function(card, fn) {
-    console.log('[access.count] '+card);
+    console.log('[access.count] %d', card);
     db.get('SELECT *, MIN(end-start) FROM access WHERE start<=? AND end>?', card, card, function(err, row) {
       if(fn) fn(row? row.count : 0);
     });
@@ -41,7 +41,7 @@ module.exports = function(c, db) {
   // get access info (within range)
   // res = {start: [], end: [], count: []}
   o.get = function(start, end, fn) {
-    console.log('[access.get]');
+    console.log('[access.get] %d -> %d', start, end);
     db.all('SELECT * FROM access WHERE start<=? AND end>=?', start, end, function(err, rows) {
       z.group(res = {}, rows, ['start', 'end', 'count']);
       if(fn) fn(res);
@@ -52,7 +52,7 @@ module.exports = function(c, db) {
   // put access info
   // req = {start: [], end: [], count: []}
   o.put = function(req, fn) {
-    console.log('[access.put]');
+    console.log('[access.put] %j', req);
     db.serialize(function() {
       for(var i=0; i<req.start.length; i++)
         db.run('INSERT INTO access(start, end, count) VALUES (?, ?, ?)', req.start[i], req.end[i], req.count[i]);

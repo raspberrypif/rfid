@@ -1,7 +1,7 @@
 // @wolfram77
 // TAP - maintains info about card taps
 // db - tap : point, time, card, status
-// () - statusinfo, clear, count, get, put, add
+// () - clear, count, get, put, add
 
 
 // required modules
@@ -19,17 +19,9 @@ module.exports = function(c, db) {
   var daymillis = 86400000;
 
 
-  // status info
-  var statusinfo = {
-    'e': 'error',
-    'v': 'valid',
-    'i': 'invalid'
-  };
-
-
 
   // get tap counts (one point)
-  // dst = {e, v, i}
+  // dst = {v, i}
   var count = function(dst, p, start, end) {
     console.log('[tap:count] .'+p+' '+start+' -> '+end);
     db.all('SELECT status, COUNT(*) FROM tap WHERE point=? AND time>=? AND time<? GROUP BY status', p, start, end, function(err, rows) {
