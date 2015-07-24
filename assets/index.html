@@ -57,23 +57,27 @@
     <input id="tap-end" type="text" class="datepicker center-align" ng-model="endstr" ng-change="refresh()">
     <label for="tap-end">End Date</label>
   </div>
-  <div class="input-field center-align col m2 s4">
-    <input id="status-i" type="checkbox" ng-model="status.i">
-    <label for="status-i">invalid</label>
+  <div class="input-field col m2 s4 fa">
+    <select>
+      <option value="0" selected> &#xf201; Chart</option>
+      <option value="1"> &#xf03a; List</option>
+      <option value="2"> &#xf019; CSV</option>
+    </select>
+    <label>Mode</label>
   </div>
   <div class="input-field center-align col m2 s4">
     <input id="status-v" type="checkbox" ng-model="status.v">
     <label for="status-v">valid</label>
   </div>
   <div class="input-field center-align col m2 s4">
-    <input id="status-e" type="checkbox" ng-model="status.e">
-    <label for="status-e">error</label>
+    <input id="status-i" type="checkbox" ng-model="status.i">
+    <label for="status-i">invalid</label>
   </div>
 </div>
 </div>
 </div>
 <!-- points select -->
-<div class="blue lighten-5" is="selected points">
+<div class="blue lighten-5">
 <div class="container">
 <div class="row">
   <div class="input-field col m2 s4" ng-repeat="(p, v) in points">
@@ -83,34 +87,13 @@
 </div>
 </div>
 </div>
-<!-- mode select, report -->
-<div class="green lighten-5" is="display mode">
-<div class="container">
-<div class="row">
-  <div class="input-field center-align col s3">
-    <input id="mode-graph" name="disp-mode" type="radio">
-    <label for="mode-graph"><i class="fa fa-area-chart fa-lg"></i> graph</label>
-  </div>
-  <div class="input-field center-align col s3">
-    <input id="mode-list" name="disp-mode" type="radio">
-    <label for="mode-list"><i class="fa fa-list fa-lg"></i> list</label>
-  </div>
-  <div class="input-field center-align col s6">
-    <a class="btn-flat waves-effect waves-teal">
-      <i class="fa fa-download fa-lg"></i> Report
-    </a>
-  </div>
-</div>
-</div>
-</div>
 </section>
 
 <section ng-show="is(0) || is(1)">
 <!-- count display -->
 <div class="row">
-  <div class="red lighten-3 col s4 center" is="invalid taps"><h4>{{tcount.i}}</h4></div>
-  <div class="green lighten-3 col s4 center" is="valid taps"><h4>{{tcount.v}}</h4></div>
-  <div class="blue lighten-3 col s4 center" is="error taps"><h4>{{tcount.e}}</h4></div>
+  <div class="green lighten-3 col s6 center" is="valid"><h4>{{tcount.v}}</h4></div>
+  <div class="red lighten-3 col s6 center" is="invalid"><h4>{{tcount.i}}</h4></div>
 </div>
 <!-- chart -->
 <div id="chart"></div>

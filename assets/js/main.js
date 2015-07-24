@@ -48,46 +48,25 @@ var merge = function(dst, srcs) {
 
 
 
-// initialize tooltip
-var itooltip = function() {
+// on ready
+$(document).ready(function() {
+  // tooltip
   $('[is]').each(function() {
     $(this).attr('data-tooltip', $(this).attr('is'));
   });
   $('[is]').tooltip();
-};
-
-
-// initialize datepicker
-var idatepicker = function() {
+  // datepicker
   $('.datepicker').pickadate({
-    'selectMonths': true, // Creates a dropdown to control month
-    'selectYears': 15 // Creates a dropdown of 15 years to control year
+    'selectMonths': true,
+    'selectYears': 15
   });
-};
-
-
-// initialize modal
-var imodal = function() {
-  $('.modal-trigger').leanModal();
-};
-
-
-// initialize point
-var ipoint = function() {
+  // select
+  $('select').material_select();
+  // point
   $.get('/api/group/point', function(res) {
     document.title = res;
     $('#title').html(res);
   });
-};
-
-
-
-// on ready
-$(document).ready(function() {
-  itooltip();
-  idatepicker();
-  imodal();
-  ipoint();
 });
 
 
