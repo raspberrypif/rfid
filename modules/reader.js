@@ -1,5 +1,5 @@
 // @wolfram77
-// READER - links to wiegand rfid reader
+// READER - provides interface to rfid reader
 // e - card; () - action, close
 
 
@@ -48,11 +48,10 @@ module.exports = function(c) {
 
 
   // indicate card
-  o.card = function(card, cbits) {
-    var status = _.indexOf(c.card.types, cbits)<0? 'e' : 'o';
-    console.log('[reader.card] ('+cbits+') '+card+' :'+status);
-    if(!inrun() || cbits<c.card.mbits) o.action('err');
-    else o.emit('card', cbits, card, status);
+  o.card = function(cbits, card) {
+    console.log('[reader.card] ('+cbits+') '+card);
+    if(!inrun() || cbits<c.card.mbits) o.action('error');
+    else o.emit('card', cbits, card);
   };
 
 
@@ -60,21 +59,21 @@ module.exports = function(c) {
   o.action = function(act, dur) {
     console.log('[reader.action] '+act);
     switch(act) {
-      case 'green':
-        setval(pgreen, 0, dur || c.action.dgreen);
-        break;
       case 'beep':
         setval(pbeep, 0, dur || c.action.dbeep);
+        break;
+      case 'green':
+        setval(pgreen, 0, dur || c.action.dgreen);
         break;
       case 'valid':
         toggleval(pbeep, 0, dur || c.action.dvld, c.action.dbeep);
         toggleval(pgreen, 0, dur || c.action.dvld, c.action.dbeep);
         break;
-      case 'error':
-        setval(pbeep, 0, dur || c.action.derr);
-        break;
       case 'invalid':
         toggleval(pbeep, 0, dur || c.action.dinv, c.action.dbeep);
+        break;
+      case 'error':
+        setval(pbeep, 0, dur || c.action.derr);
         break;
     }
   };

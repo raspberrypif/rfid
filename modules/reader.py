@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # @wolfram77
+# READER - provides interface to rfid reader
+# http.post -> /api/reader/card
 
 
 # required modules
@@ -9,7 +11,7 @@ from requests_futures.sessions import FuturesSession
 
 
 # config
-ctimeout = 0.1
+dread = 0.1
 
 
 # connections
@@ -58,11 +60,11 @@ GPIO.add_event_detect(pdata1, GPIO.FALLING, callback=cdata1_low)
 print "[reader] ready!"
 try:
   while True:
-    time.sleep(ctimeout)
+    time.sleep(dread)
     if cbits > 0:
-      time.sleep(ctimeout)
+      time.sleep(dread)
       print "[%d bit] - %d" % (cbits, card)
-      payload = {"card": card, "cbits": cbits}
+      payload = {"cbits": cbits, "card": card}
       session.post("http://localhost/api/reader/card", payload)
       card = 1
       cbits = 0

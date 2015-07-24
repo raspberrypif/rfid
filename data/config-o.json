@@ -19,7 +19,6 @@
 	},
 	"reader": {
 		"card": {
-			"types": [26, 35],
 			"dread": 200,
 			"mbits": 8
 		},
