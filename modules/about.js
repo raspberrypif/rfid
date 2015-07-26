@@ -1,5 +1,5 @@
 // @wolfram77
-// GROUP - maintains info sharing with multiple devices
+// ABOUT - maintains info about device
 // () - point, points, get, set, clear, sync
 
 
@@ -132,48 +132,46 @@ module.exports = function(c, tap) {
 
 
 
-  // get name of this
-  o.point = function() {
-    console.log('[group.point]');
-    return c.point;
+  // get or set id of device
+  o.id = function(id) {
+    console.log('about.id> %s', id);
+    return c.id = id || c.id;
   };
 
 
-  // get names of points (including self)
-  // ret = [name]
-  o.points = function() {
-    console.log('[group.points]');
-    var ps = _.keys(c.points);
-    ps.push(c.point);
-    return ps;
+  // get or set peers
+  o.peers = function(peers) {
+    console.log('about.peers> %s', peers);
+    for(var i in peers) {
+      if(peers[i] === null) delete c.peers[i];
+      else _.merge(c.peers[i], peers[i]);
+    }
+    return c.peers;
   };
 
 
-  // get point details
-  // ret = {name:{host, port}}, ps = [name]
-  o.get = function(ps) {
-    console.log('[group.get]');
-    return _.pick(c.points, ps);
+  // state.js
+  var deltas = [{}];
+
+  // how do you take care of a given delta
+  o.delta = function(fn, args) {
+
   };
 
 
-  // set point details
-  // pds = {name:{host, port}}
-  o.set = function(pds) {
-    console.log('[group.set]');
-    var now = _.now();
-    for(var p in pds)
-      c.points[p] = _.assign(c.points[p] || {'tsync': 0}, pds[p]);
-  };
 
 
-  // clear point
-  // ps = [name]
-  o.clear = function(ps) {
-    console.log('[group.clear]');
-    for(var i=0; i<ps.length; i++)
-      delete c.points[ps[i]];
-  };
+
+
+
+
+
+
+
+
+
+
+
 
 
   // sync data
