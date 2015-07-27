@@ -1,6 +1,6 @@
 // @wolfram77
 // READER - provides interface to rfid reader
-// e - card; () - action, close
+// e - card; () - card, out, close
 
 
 // required modules
@@ -49,31 +49,31 @@ module.exports = function(c) {
 
   // indicate card
   o.card = function(cbits, card) {
-    console.log('[reader.card] ('+cbits+') '+card);
-    if(!inrun() || cbits<c.card.mbits) o.action('error');
+    console.log('reader.card> ('+cbits+') '+card);
+    if(!inrun() || cbits<c.card.mbits) o.out('error');
     else o.emit('card', cbits, card);
   };
 
 
-  // perform action
-  o.action = function(act, dur) {
-    console.log('[reader.action] '+act);
-    switch(act) {
+  // produce output
+  o.out = function(type, dur) {
+    console.log('reader.out> %s (%d)', type, dur);
+    switch(type) {
       case 'beep':
-        setval(pbeep, 0, dur || c.action.dbeep);
+        setval(pbeep, 0, dur || c.out.dbeep);
         break;
       case 'green':
-        setval(pgreen, 0, dur || c.action.dgreen);
+        setval(pgreen, 0, dur || c.out.dgreen);
         break;
       case 'valid':
-        toggleval(pbeep, 0, dur || c.action.dvld, c.action.dbeep);
-        toggleval(pgreen, 0, dur || c.action.dvld, c.action.dbeep);
+        toggleval(pbeep, 0, dur || c.out.dvld, c.out.dbeep);
+        toggleval(pgreen, 0, dur || c.out.dvld, c.out.dbeep);
         break;
       case 'invalid':
-        toggleval(pbeep, 0, dur || c.action.dinv, c.action.dbeep);
+        toggleval(pbeep, 0, dur || c.out.dinv, c.out.dbeep);
         break;
       case 'error':
-        setval(pbeep, 0, dur || c.action.derr);
+        setval(pbeep, 0, dur || c.out.derr);
         break;
     }
   };
@@ -81,7 +81,7 @@ module.exports = function(c) {
 
   // close module
   o.close = function() {
-    console.log('[reader.close]');
+    console.log('reader.close>');
     pgreen.unexport();
     pbeep.unexport();
   };
@@ -89,6 +89,6 @@ module.exports = function(c) {
 
 
   // ready!
-  console.log('[reader] ready!');
+  console.log('reader> ready!');
   return o;
 };

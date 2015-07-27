@@ -66,6 +66,6 @@ module.exports = function(c, db) {
   db.run('CREATE TABLE IF NOT EXISTS access(start INTEGER NOT NULL, end INTEGER NOT NULL, count INTEGER NOT NULL, PRIMARY KEY(start, end)) WITHOUT ROWID');
 
   // ready!
-  console.log('[access] ready!');
+  console.log('access> ready!');
   return o;
 };
