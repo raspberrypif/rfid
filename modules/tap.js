@@ -23,7 +23,6 @@ module.exports = function(c, db) {
   // get tap counts (one point)
   // dst = {v, i}
   var count = function(dst, p, start, end) {
-    console.log('[tap:count] .'+p+' '+start+' -> '+end);
     db.all('SELECT status, COUNT(*) FROM tap WHERE point=? AND time>=? AND time<? GROUP BY status', p, start, end, function(err, rows) {
       for(var i=0; i<rows.length; i++)
         dst[rows[i].status] = rows[i]['COUNT(*)'];
@@ -51,16 +50,9 @@ module.exports = function(c, db) {
 
 
 
-  // status info
-  o.statusinfo = function() {
-    console.log('[tap.statusinfo]');
-    return statusinfo;
-  };
-
-
   // clear tap info
   o.clear = function(start, end, fn) {
-    console.log('[tap.clear]');
+    console.log('tap.clear> %d -> %d', start, end);
     db.serialize(function() {
       db.run('DELETE FROM tap WHERE time>=? AND time<?', start, end);
       db.run('VACUUM', fn);
@@ -69,17 +61,15 @@ module.exports = function(c, db) {
 
 
   // get tap counts
-  // req = {point: {start, end}}
-  // res = {point: {e, v, i}}
-  o.count = function(req, fn) {
-    console.log('[tap.count]');
+  // pr = {point: {start, end}}
+  // pc = {point: {v, i}}
+  o.count = function(pr, fn) {
+    console.log('tap.count> %j', pr);
     db.serialize(function() {
-      var res = {};
-      for(var p in req)
-        count(res[p] = {}, p, req[p].start, req[p].end);
-      db.run('PRAGMA no_op', function() {
-        if(fn) fn(res);
-      });
+      var pc = {};
+      for(var p in pr)
+        count(pc[p]={}, p, pr[p].start, pr[p].end);
+      db.run('PRAGMA no_op', function() { if(fn) fn(pc); });
     });
   };
 
