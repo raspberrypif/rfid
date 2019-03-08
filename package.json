@@ -1,13 +1,13 @@
 {
   "name": "pi-rfid",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "rfid system for snacks",
   "main": "index.js",
   "dependencies": {
-    "body-parser": "^1.12.4",
-    "express": "^4.12.4",
-    "lodash": "^3.9.3",
-    "sqlite3": "^3.0.8"
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "lodash": "^4.17.11",
+    "sqlite3": "^4.0.6"
   },
   "devDependencies": {},
   "scripts": {
